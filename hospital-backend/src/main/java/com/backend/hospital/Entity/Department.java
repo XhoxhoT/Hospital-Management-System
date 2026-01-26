@@ -25,9 +25,6 @@ public class Department {
     @Column(name = "total_beds", nullable = false)
     private int totalBeds;
 
-    @Column(name = "free_beds", nullable = false)
-    private int freeBeds;
-
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Room> rooms;
 }
