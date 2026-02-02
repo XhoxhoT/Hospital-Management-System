@@ -25,6 +25,14 @@ public class GlobalExceptionHandler extends RuntimeException {
                 ;
     }
 
+    @ExceptionHandler(StatusCouldNotBeChanged.class)
+    public ResponseEntity<?> handleStatusCouldNotBeChanged(StatusCouldNotBeChanged ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError("BAD_REQUEST", ex.getMessage()))
+                ;
+    }
+
 
 
 }

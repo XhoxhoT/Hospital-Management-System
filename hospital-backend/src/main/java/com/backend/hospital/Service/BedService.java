@@ -6,6 +6,7 @@ import com.backend.hospital.Entity.Room;
 import com.backend.hospital.Enums.BedStatus;
 import com.backend.hospital.Exceptions.BedNotAvailableException;
 import com.backend.hospital.Exceptions.ResourceNotFoundException;
+import com.backend.hospital.Exceptions.StatusCouldNotBeChanged;
 import com.backend.hospital.Repository.BedRepository;
 
 import com.backend.hospital.Repository.RoomRepository;
@@ -48,6 +49,23 @@ public class BedService {
         bed.setStatus(BedStatus.OCCUPIED);
 
         bedRepository.save(bed);
+
+        return bed;
+    }
+
+    public Bed changeStatus(Long bedId, BedStatus status){
+
+        Bed bed = bedRepository.findById(bedId).
+                orElseThrow(() -> new ResourceNotFoundException("" +
+                        "Bed with id :"+ bedId+" was not found"));
+
+        if (bed.getStatus() == status) {
+            throw new StatusCouldNotBeChanged(
+                    "Bed is already in status: " + status
+            );
+        }
+
+        bed.setStatus(status);
 
         return bed;
     }

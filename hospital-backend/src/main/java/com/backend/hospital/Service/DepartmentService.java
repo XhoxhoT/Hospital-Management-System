@@ -39,5 +39,9 @@ public class DepartmentService {
         );
     }
 
+    public long getTotalBeds(Long departmentId){
+        return bedRepository.countByRoom_Department_IdAndStatusIn(List.of(BedStatus.FREE, BedStatus.OCCUPIED));
+    }
+
 
 }
