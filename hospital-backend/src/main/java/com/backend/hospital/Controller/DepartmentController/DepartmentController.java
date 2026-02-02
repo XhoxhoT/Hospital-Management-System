@@ -45,7 +45,7 @@ public class DepartmentController {
                 .build();
 
         Department savedDepartment = departmentService.createDepartment(department);
-
+        System.out.println("Test");
         return ResponseEntity.status(201).body(savedDepartment);
     }
 
