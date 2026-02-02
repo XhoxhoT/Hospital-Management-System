@@ -21,4 +21,7 @@ public interface BedRepository extends JpaRepository<Bed,Long> {
 
     // për mjekun: vetëm shikim
     long countByRoom_Department_IdAndStatus(Long departmentId, BedStatus status);
+
+    long countByRoom_Department_IdAndStatusIn(List<BedStatus> statuses);
+
 }
