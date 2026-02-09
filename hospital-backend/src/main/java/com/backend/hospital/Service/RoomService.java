@@ -1,12 +1,18 @@
 package com.backend.hospital.Service;
 
+
+import com.backend.hospital.DTO.CreateRoom;
+import com.backend.hospital.DTO.RoomDTO;
 import com.backend.hospital.Entity.Department;
 import com.backend.hospital.Entity.Room;
 import com.backend.hospital.Exceptions.ResourceNotFoundException;
 import com.backend.hospital.Repository.DepartmentRepository;
 import com.backend.hospital.Repository.RoomRepository;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 import java.util.*;
 
@@ -16,22 +22,38 @@ public class RoomService {
 
     private RoomRepository roomRepository;
     private DepartmentRepository departmentRepository;
+    private ModelMapper modelMapper;
 
 
-    public Room createRoom(Long departmentId,Room room){
+    public RoomDTO createRoom(CreateRoom createRoom){
 
-        Department department = departmentRepository.findById(departmentId)
+        System.out.println(createRoom.getDepartmentId());
+        Department department = departmentRepository.findById(createRoom.getDepartmentId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 " Room could not be created because" +
-                                        " department with id " + departmentId + " not found"
+                                        " department with id " + createRoom.getDepartmentId() + " not found"
                         ));
 
+        System.out.println("test");
+        Room room = modelMapper.map(createRoom, Room.class);
         room.setDepartment(department);
-        return roomRepository.save(room);
+        Room savedRoom = roomRepository.save(room);
+        return convertToDTO(savedRoom);
     }
 
-    public List<Room> getRoomsByDepartment(Long departmentId) {
-        return roomRepository.findByDepartmentId(departmentId);
+    public List<RoomDTO> getRoomsByDepartment(Long departmentId) {
+
+        List<RoomDTO> roomDTOS = roomRepository.findByDepartmentId(departmentId)
+                .stream()
+                .map(room -> modelMapper.map(room, RoomDTO.class))
+                .toList();
+
+        return roomDTOS;
+
+    }
+
+    private RoomDTO convertToDTO(Room room) {
+        return modelMapper.map(room, RoomDTO.class);
     }
 }
