@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -26,13 +27,21 @@ public class BedController {
        return ResponseEntity.status(201).body(bed);
     }
 
+    @GetMapping ("/room/{roomId}/beds")
+    public ResponseEntity<List<BedDTO>> getBedsbyRoom(@PathVariable Long roomId){
+
+        List<BedDTO> beds = bedService.getBedsByRoomId(roomId);
+
+        return ResponseEntity.ok(beds);
+    }
+
 
     @PostMapping("/beds/{bedId}/occupy")
-    public ResponseEntity<Bed> occupyBed(@PathVariable Long bedId) {
+    public ResponseEntity<BedDTO> occupyBed(@PathVariable Long bedId) {
 
-        Bed bed = bedService.occupyBed(bedId);
+        BedDTO bedDTO = bedService.occupyBed(bedId);
 
-        return ResponseEntity.ok(bed);
+        return ResponseEntity.ok(bedDTO);
     }
 
     @PatchMapping("/beds/{bedId}/status")

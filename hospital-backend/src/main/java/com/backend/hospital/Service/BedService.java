@@ -17,6 +17,10 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
+
+
+
 @AllArgsConstructor
 @Service
 public class BedService {
@@ -43,7 +47,7 @@ public class BedService {
 
 
     @Transactional
-    public Bed occupyBed(Long bedId) {
+    public BedDTO occupyBed(Long bedId) {
 
         Bed bed = bedRepository.findById(bedId)
                 .orElseThrow( () -> new ResourceNotFoundException("Bed with id : "+bedId+" is not found"));
@@ -54,9 +58,9 @@ public class BedService {
 
         bed.setStatus(BedStatus.OCCUPIED);
 
-        bedRepository.save(bed);
+        Bed savedBed = bedRepository.save(bed);
 
-        return bed;
+        return modelMapper.map(savedBed, BedDTO.class);
     }
 
     public Bed changeStatus(Long bedId, BedStatus status){
@@ -74,6 +78,17 @@ public class BedService {
         bed.setStatus(status);
 
         return bed;
+    }
+
+
+    public List<BedDTO> getBedsByRoomId(Long roomId){
+
+        List<BedDTO> beds = bedRepository.findByRoomId(roomId)
+                .stream()
+                .map(bed -> modelMapper.map(bed, BedDTO.class))
+                .toList();
+
+        return beds;
     }
 
 

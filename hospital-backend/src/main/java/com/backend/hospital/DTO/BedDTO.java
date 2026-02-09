@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 public class BedDTO {
 
+    private Long bedId;
     private String bednumber;
     private BedStatus bedStatus;
     private Long roomId;
