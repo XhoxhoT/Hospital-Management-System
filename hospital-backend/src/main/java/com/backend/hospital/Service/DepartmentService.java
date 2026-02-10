@@ -2,12 +2,15 @@ package com.backend.hospital.Service;
 
 import java.util.*;
 
+import com.backend.hospital.DTO.CreateDepartment;
+import com.backend.hospital.DTO.DepartmentDTO;
 import com.backend.hospital.Entity.Department;
 import com.backend.hospital.Enums.BedStatus;
 import com.backend.hospital.Exceptions.ResourceNotFoundException;
 import com.backend.hospital.Repository.BedRepository;
 import com.backend.hospital.Repository.DepartmentRepository;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -16,6 +19,7 @@ public class DepartmentService {
 
     private DepartmentRepository departmentRepository;
     private BedRepository bedRepository;
+    private ModelMapper modelMapper;
 
 
     public List<Department> getAllDepartments() {
@@ -28,8 +32,10 @@ public class DepartmentService {
     }
 
     // Admin: create department
-    public Department createDepartment(Department department) {
-        return departmentRepository.save(department);
+    public DepartmentDTO createDepartment(CreateDepartment createDepartment) {
+
+        Department department = modelMapper.map(createDepartment, Department.class);
+        return modelMapper.map(departmentRepository.save(department), DepartmentDTO.class);
     }
 
     public long getFreeBeds(Long departmentId) {
@@ -40,7 +46,7 @@ public class DepartmentService {
     }
 
     public long getTotalBeds(Long departmentId){
-        return bedRepository.countByRoom_Department_IdAndStatusIn(List.of(BedStatus.FREE, BedStatus.OCCUPIED));
+        return bedRepository.countByRoom_Department_IdAndStatusIn(departmentId, List.of(BedStatus.FREE, BedStatus.OCCUPIED));
     }
 
 

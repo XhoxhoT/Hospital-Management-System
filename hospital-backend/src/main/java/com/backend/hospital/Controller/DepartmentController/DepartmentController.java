@@ -2,10 +2,13 @@ package com.backend.hospital.Controller.DepartmentController;
 
 import com.backend.hospital.DTO.CreateDepartment;
 import com.backend.hospital.DTO.DepartmentAvailabilityDto;
+import com.backend.hospital.DTO.DepartmentDTO;
 import com.backend.hospital.Entity.Department;
 import com.backend.hospital.Service.DepartmentService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +16,11 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/departments")
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class DepartmentController {
 
     private DepartmentService departmentService;
+    private ModelMapper modelMapper;
 
 
     @GetMapping
@@ -37,16 +41,10 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(
+    public ResponseEntity<DepartmentDTO> createDepartment(
             @Valid @RequestBody CreateDepartment dto) {
-
-        Department department = Department.builder()
-                .name(dto.getName())
-                .build();
-
-        Department savedDepartment = departmentService.createDepartment(department);
-        System.out.println("Test");
-        return ResponseEntity.status(201).body(savedDepartment);
+        DepartmentDTO departmentDTO = departmentService.createDepartment(dto);
+        return ResponseEntity.status(201).body(departmentDTO);
     }
 
 

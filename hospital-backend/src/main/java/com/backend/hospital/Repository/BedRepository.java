@@ -1,5 +1,6 @@
 package com.backend.hospital.Repository;
 
+import com.backend.hospital.DTO.BedDTO;
 import com.backend.hospital.Entity.Bed;
 import com.backend.hospital.Enums.BedStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,9 +20,10 @@ public interface BedRepository extends JpaRepository<Bed,Long> {
     // për booking real nga infermieri
     Optional<Bed> findFirstByRoom_Department_IdAndStatus(Long departmentId, BedStatus status);
 
+    Optional<Bed> findByBedNumber(String bedNumber);
     // për mjekun: vetëm shikim
     long countByRoom_Department_IdAndStatus(Long departmentId, BedStatus status);
 
-    long countByRoom_Department_IdAndStatusIn(List<BedStatus> statuses);
+    long countByRoom_Department_IdAndStatusIn(Long departmentId,List<BedStatus> statuses);
 
 }
