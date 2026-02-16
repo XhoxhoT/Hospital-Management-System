@@ -1,0 +1,409 @@
+.pavilion-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 148px);
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1976d2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  margin-top: 1rem;
+  color: #666;
+}
+
+/* Error State */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.error-state p {
+  color: #c62828;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Pavilion Header */
+.pavilion-header {
+  margin-bottom: 2rem;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #1976d2;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: #125699;
+}
+
+.back-arrow {
+  font-size: 1.2rem;
+}
+
+.header-text h1 {
+  color: #1a1a1a;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.header-text p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+}
+
+.stat-info h3 {
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stat-number.available {
+  color: #2e7d32;
+}
+
+.stat-number.occupied {
+  color: #c62828;
+}
+
+.stat-number.unavailable {
+  color: #616161;
+}
+
+/* Table Section */
+.table-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  color: #1a1a1a;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color.free {
+  background: #4caf50;
+}
+
+.legend-color.occupied {
+  background: #ef5350;
+}
+
+.legend-color.unavailable {
+  background: #9e9e9e;
+}
+
+/* Table Container */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+/* Beds Table */
+.beds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.beds-table th,
+.beds-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+}
+
+.beds-table thead {
+  background: #f5f5f5;
+}
+
+.beds-table th {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.beds-table tbody tr {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.beds-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Room row colors - alternating by room */
+.beds-table tbody tr.room-even {
+  background: #ffffff;
+}
+
+.beds-table tbody tr.room-odd {
+  background: #e8f4fc;
+}
+
+.beds-table tbody tr:hover {
+  filter: brightness(0.97);
+}
+
+/* Room cell with rowspan */
+.room-cell {
+  border-right: 2px solid #e0e0e0;
+  vertical-align: middle;
+  min-width: 140px;
+}
+
+.room-cell.room-cell-even {
+  background: #ffffff;
+}
+
+.room-cell.room-cell-odd {
+  background: #e8f4fc;
+}
+
+.room-name {
+  display: block;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.room-info {
+  display: block;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.bed-cell {
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+
+.status-cell {
+  width: 160px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.free {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.occupied {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge.unavailable {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+/* Status Dropdown */
+.status-dropdown {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #424242;
+  min-width: 140px;
+}
+
+.status-dropdown:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+.status-dropdown.free {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #4caf50;
+}
+
+.status-dropdown.occupied {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ef5350;
+}
+
+.status-dropdown.unavailable {
+  background: #f5f5f5;
+  color: #616161;
+  border-color: #9e9e9e;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #125699;
+}
+
+/* Responsive */
+@media screen and (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .pavilion-container {
+    padding: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-text h1 {
+    font-size: 1.8rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .beds-table th,
+  .beds-table td {
+    padding: 0.75rem 1rem;
+  }
+
+  .room-cell {
+    min-width: 100px;
+  }
+
+  .status-cell {
+    width: auto;
+  }
+
+  .action-cell {
+    width: auto;
+  }
+}
