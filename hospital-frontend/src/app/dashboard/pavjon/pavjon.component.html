@@ -20,7 +20,6 @@
       </button>
       <div class="header-text">
         <h1>{{ pavilion.name }}</h1>
-        <p>{{ pavilion.description }}</p>
       </div>
     </div>
 
@@ -35,13 +34,13 @@
       <div class="stat-card">
         <div class="stat-info">
           <h3>Totali Shtretërve</h3>
-          <p class="stat-number">{{ pavilion.bedCount }}</p>
+          <p class="stat-number">{{ pavilion.totalBeds }}</p>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-info">
           <h3>Shtretër të Lirë</h3>
-          <p class="stat-number available">{{ pavilion.availableBeds }}</p>
+          <p class="stat-number available">{{ pavilion.freeBeds }}</p>
         </div>
       </div>
       <div class="stat-card">
@@ -62,14 +61,38 @@
     <div class="table-section">
       <div class="section-header">
         <h2>Shtretërit</h2>
-        <div class="legend">
-          <span class="legend-item"><span class="legend-color free"></span> I lirë</span>
-          <span class="legend-item"><span class="legend-color occupied"></span> I zënë</span>
-          <span class="legend-item"><span class="legend-color unavailable"></span> Jo i disponueshëm</span>
+        <div class="header-actions">
+          <div class="legend">
+            <span class="legend-item"><span class="legend-color free"></span> I lirë</span>
+            <span class="legend-item"><span class="legend-color occupied"></span> I zënë</span>
+            <span class="legend-item"><span class="legend-color unavailable"></span> Jo i disponueshëm</span>
+          </div>
+          <button class="btn btn-primary btn-sm" (click)="toggleAddRoomForm()">
+            {{ showAddRoomForm ? '✕ Anulo' : '+ Shto Dhomë' }}
+          </button>
         </div>
       </div>
 
-      <div class="table-container">
+      <!-- Add Room Form -->
+      <div *ngIf="showAddRoomForm" class="inline-form">
+        <span class="inline-form-label">Nr. Dhomës:</span>
+        <input
+          type="text"
+          class="form-input"
+          placeholder="p.sh. 101"
+          [(ngModel)]="newRoomNumber"
+          (keyup.enter)="submitAddRoom()" />
+        <button class="btn btn-primary btn-sm" (click)="submitAddRoom()" [disabled]="addingRoom || !newRoomNumber.trim()">
+          {{ addingRoom ? 'Duke shtuar...' : 'Shto' }}
+        </button>
+        <span *ngIf="addRoomError" class="form-error">{{ addRoomError }}</span>
+      </div>
+
+      <div *ngIf="pavilion.rooms.length === 0 && !showAddRoomForm" class="empty-state">
+        Nuk ka dhoma. Shto një dhomë me butonin "Shto Dhomë".
+      </div>
+
+      <div class="table-container" *ngIf="pavilion.rooms.length > 0">
         <table class="beds-table">
           <thead>
             <tr>
@@ -80,25 +103,68 @@
           </thead>
           <tbody>
             <ng-container *ngFor="let room of pavilion.rooms; let roomIndex = index">
-              <tr *ngFor="let bed of room.beds; let bedIndex = index" [class.room-even]="roomIndex % 2 === 0"
+              <!-- Bed rows -->
+              <tr *ngFor="let bed of room.beds; let bedIndex = index"
+                [class.room-even]="roomIndex % 2 === 0"
                 [class.room-odd]="roomIndex % 2 !== 0">
-                <td class="room-cell" *ngIf="bedIndex === 0" [attr.rowspan]="room.beds.length"
-                  [class.room-cell-even]="roomIndex % 2 === 0" [class.room-cell-odd]="roomIndex % 2 !== 0">
-                  <span class="room-name">Dhoma {{ room.number }}</span>
+                <td class="room-cell"
+                  *ngIf="bedIndex === 0"
+                  [attr.rowspan]="room.beds.length + 1"
+                  [class.room-cell-even]="roomIndex % 2 === 0"
+                  [class.room-cell-odd]="roomIndex % 2 !== 0">
+                  <span class="room-name">Dhoma {{ room.roomNumber }}</span>
                   <span class="room-info">{{ getFreeBeds(room) }}/{{ room.beds.length }} të lirë</span>
+                  <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                    {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                  </button>
                 </td>
-                <td class="bed-cell">{{ bed.number }}</td>
+                <td class="bed-cell">{{ bed.bednumber }}</td>
                 <td class="status-cell">
                   <select class="status-dropdown"
-                    [class.free]="bed.status === 'free'"
-                    [class.occupied]="bed.status === 'occupied'"
-                    [class.unavailable]="bed.status === 'unavailable'"
-                    [value]="bed.status"
-                    (change)="setBedStatus(room, bed, $event)">
-                    <option value="free">I lirë</option>
-                    <option value="occupied">I zënë</option>
-                    <option value="unavailable">Jo i disponueshëm</option>
+                    [class.free]="bed.bedStatus === 'FREE'"
+                    [class.occupied]="bed.bedStatus === 'OCCUPIED'"
+                    [class.unavailable]="bed.bedStatus === 'OUT_OF_SERVICE'"
+                    [value]="bed.bedStatus"
+                    (change)="setBedStatus(bed, $event)">
+                    <option value="FREE">I lirë</option>
+                    <option value="OCCUPIED">I zënë</option>
+                    <option value="OUT_OF_SERVICE">Jo i disponueshëm</option>
                   </select>
+                </td>
+              </tr>
+              <!-- Empty room (no beds yet) placeholder row -->
+              <tr *ngIf="room.beds.length === 0"
+                [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0">
+                <td class="room-cell"
+                  [class.room-cell-even]="roomIndex % 2 === 0"
+                  [class.room-cell-odd]="roomIndex % 2 !== 0">
+                  <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                  <span class="room-info">0/0 të lirë</span>
+                  <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                    {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                  </button>
+                </td>
+                <td colspan="2" class="empty-room-cell">Nuk ka shtretër</td>
+              </tr>
+              <!-- Add Bed inline row -->
+              <tr *ngIf="addBedForRoomId === room.id"
+                [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0">
+                <td colspan="2" class="add-bed-cell">
+                  <div class="add-bed-form">
+                    <span class="inline-form-label">Nr. Shtratit:</span>
+                    <input
+                      type="text"
+                      class="form-input form-input-sm"
+                      placeholder="p.sh. B1"
+                      [(ngModel)]="newBedNumber"
+                      (keyup.enter)="submitAddBed(room)" />
+                    <button class="btn btn-primary btn-sm" (click)="submitAddBed(room)" [disabled]="addingBed || !newBedNumber.trim()">
+                      {{ addingBed ? '...' : 'Shto' }}
+                    </button>
+                    <span *ngIf="addBedError" class="form-error">{{ addBedError }}</span>
+                  </div>
                 </td>
               </tr>
             </ng-container>

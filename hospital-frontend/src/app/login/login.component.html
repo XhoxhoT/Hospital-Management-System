@@ -14,12 +14,11 @@
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" formControlName="email" class="form-control"
-          [class.is-invalid]="submitted && f['email'].errors" placeholder="Enter your email" />
-        <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
-          <div *ngIf="f['email'].errors['required']">Email is required</div>
-          <div *ngIf="f['email'].errors['email']">Email must be valid</div>
+        <label for="username">Username</label>
+        <input type="text" id="username" formControlName="username" class="form-control"
+          [class.is-invalid]="submitted && f['username'].errors" placeholder="Enter your username" />
+        <div *ngIf="submitted && f['username'].errors" class="invalid-feedback">
+          <div *ngIf="f['username'].errors['required']">Username is required</div>
         </div>
       </div>
 
@@ -39,10 +38,6 @@
         <span *ngIf="loading">Logging in...</span>
       </button>
     </form>
-
-    <div class="register-link">
-      Don't have an account? <a href="/register">Register here</a>
-    </div>
   </div>
 </div>
 <app-footer></app-footer>

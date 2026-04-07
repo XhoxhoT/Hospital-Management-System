@@ -1,30 +1,21 @@
 export enum UserRole {
-  SUPER_ADMIN = 'super_admin'
+  ADMIN = 'ADMIN',
+  EMERGENCY_DOCTOR = 'EMERGENCY_DOCTOR',
+  DEPARTMENT_STAFF = 'DEPARTMENT_STAFF'
 }
 
 export interface User {
-  id?: string;
-  email: string;
+  id?: number;
   username: string;
-  role: UserRole;
+  role?: UserRole;
   token?: string;
 }
 
 export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
   username: string;
   password: string;
-  confirmPassword?: string;
-  role?: UserRole;
 }
 
 export interface AuthResponse {
-  user: User;
   token: string;
-  message?: string;
 }

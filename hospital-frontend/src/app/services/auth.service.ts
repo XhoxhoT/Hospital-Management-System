@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { User, LoginRequest, RegisterRequest, AuthResponse, UserRole } from '../models/user.model';
+import { User, LoginRequest, AuthResponse } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,13 +12,12 @@ import { User, LoginRequest, RegisterRequest, AuthResponse, UserRole } from '../
 export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  private apiUrl = 'http://localhost:3000/api/auth'; // Update with your backend API URL
+  private apiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
-    // Initialize with user from localStorage if available
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
@@ -30,93 +30,22 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    // For demo purposes, this simulates a login
-    // Replace with actual HTTP call: return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-
-    return of({
-      user: {
-        id: '1',
-        email: credentials.email,
-        username: credentials.email.split('@')[0],
-        role: UserRole.SUPER_ADMIN
-      },
-      token: 'demo-jwt-token-' + Math.random().toString(36).substr(2, 9),
-      message: 'Login successful'
-    }).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
-        // Store user details and token in local storage
-        const user = { ...response.user, token: response.token };
+        const username = this.decodeJwtUsername(response.token);
+        const user: User = { username, token: response.token };
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('token', response.token);
         this.currentUserSubject.next(user);
-      }),
-      catchError(error => {
-        console.error('Login error:', error);
-        throw error;
       })
     );
-
-    // Uncomment this for real API integration:
-    // return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
-    //   tap(response => {
-    //     const user = { ...response.user, token: response.token };
-    //     localStorage.setItem('currentUser', JSON.stringify(user));
-    //     localStorage.setItem('token', response.token);
-    //     this.currentUserSubject.next(user);
-    //   }),
-    //   catchError(error => {
-    //     console.error('Login error:', error);
-    //     throw error;
-    //   })
-    // );
-  }
-
-  register(userData: RegisterRequest): Observable<AuthResponse> {
-    // For demo purposes, this simulates a registration
-    // Replace with actual HTTP call: return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData)
-
-    return of({
-      user: {
-        id: Math.random().toString(36).substr(2, 9),
-        email: userData.email,
-        username: userData.username,
-        role: UserRole.SUPER_ADMIN
-      },
-      token: 'demo-jwt-token-' + Math.random().toString(36).substr(2, 9),
-      message: 'Registration successful. Please verify your email.'
-    }).pipe(
-      // Note: NOT storing user in localStorage - user must login after registration
-      tap(response => {
-        console.log('User registered:', response.user.email);
-        // Here you would trigger email verification
-      }),
-      catchError(error => {
-        console.error('Registration error:', error);
-        throw error;
-      })
-    );
-
-    // Uncomment this for real API integration:
-    // return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-    //   tap(response => {
-    //     const user = { ...response.user, token: response.token };
-    //     localStorage.setItem('currentUser', JSON.stringify(user));
-    //     localStorage.setItem('token', response.token);
-    //     this.currentUserSubject.next(user);
-    //   }),
-    //   catchError(error => {
-    //     console.error('Registration error:', error);
-    //     throw error;
-    //   })
-    // );
   }
 
   logout(): void {
-    // Remove user from local storage
     localStorage.removeItem('currentUser');
     localStorage.removeItem('token');
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   isAuthenticated(): boolean {
@@ -127,17 +56,17 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  // Helper method to get auth headers
-  getAuthHeaders(): HttpHeaders {
-    const token = this.getToken();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
+  getDashboardRoute(): string {
+    return '/dashboard';
   }
 
-  // Helper method to get dashboard route based on user role
-  getDashboardRoute(role: UserRole): string {
-    return '/dashboard';
+  private decodeJwtUsername(token: string): string {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded.sub ?? '';
+    } catch {
+      return '';
+    }
   }
 }

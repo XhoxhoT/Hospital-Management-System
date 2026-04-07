@@ -1,19 +1,46 @@
 <app-navbar></app-navbar>
 <div class="dashboard-container">
-  <div class="dashboard-header text-center">
-    <h1>Pavjonet</h1>
+  <div class="dashboard-header">
+    <div class="header-row">
+      <h1>Pavjonet</h1>
+      <button class="btn btn-primary" (click)="toggleAddForm()">
+        {{ showAddForm ? '✕ Anulo' : '+ Shto Pavjon' }}
+      </button>
+    </div>
+
+    <div *ngIf="showAddForm" class="add-form">
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Emri i pavjonit..."
+        [(ngModel)]="newDepartmentName"
+        (keyup.enter)="submitAddDepartment()"
+        autofocus />
+      <button class="btn btn-primary" (click)="submitAddDepartment()" [disabled]="addingDepartment || !newDepartmentName.trim()">
+        {{ addingDepartment ? 'Duke shtuar...' : 'Shto' }}
+      </button>
+      <span *ngIf="addError" class="form-error">{{ addError }}</span>
+    </div>
   </div>
 
-  <div class="dashboard-content">
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Duke ngarkuar...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="dashboard-content" *ngIf="!loading && !error">
     <div class="pavilions-grid">
       <div class="pavilion-card" *ngFor="let pavilion of pavilions" (click)="navigateToPavilion(pavilion)">
         <div class="pavilion-info">
           <h3 class="pavilion-title">{{ pavilion.name }}</h3>
-          <p class="pavilion-description">{{ pavilion.description }}</p>
           <div class="pavilion-beds">
-            <span class="beds-available">{{ pavilion.availableBeds }}</span>
+            <span class="beds-available">{{ pavilion.freeBeds }}</span>
             <span class="beds-separator">/</span>
-            <span class="beds-total">{{ pavilion.bedCount }}</span>
+            <span class="beds-total">{{ pavilion.totalBeds }}</span>
             <span class="beds-label">Shtretër të lirë</span>
           </div>
         </div>
