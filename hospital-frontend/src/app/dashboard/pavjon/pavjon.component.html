@@ -1,0 +1,111 @@
+<app-navbar></app-navbar>
+<div class="pavilion-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Duke ngarkuar...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="goBack()">Kthehu tek Dashboard</button>
+  </div>
+
+  <!-- Pavilion Content -->
+  <div *ngIf="pavilion && !loading" class="pavilion-content">
+    <div class="pavilion-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="back-arrow">←</span> Kthehu
+      </button>
+      <div class="header-text">
+        <h1>{{ pavilion.name }}</h1>
+        <p>{{ pavilion.description }}</p>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Dhoma Total</h3>
+          <p class="stat-number">{{ pavilion.rooms.length }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Totali Shtretërve</h3>
+          <p class="stat-number">{{ pavilion.bedCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Shtretër të Lirë</h3>
+          <p class="stat-number available">{{ pavilion.availableBeds }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Shtretër të Zënë</h3>
+          <p class="stat-number occupied">{{ pavilion.patientCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Jo të Disponueshëm</h3>
+          <p class="stat-number unavailable">{{ pavilion.unavailableBeds }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beds Table Section -->
+    <div class="table-section">
+      <div class="section-header">
+        <h2>Shtretërit</h2>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-color free"></span> I lirë</span>
+          <span class="legend-item"><span class="legend-color occupied"></span> I zënë</span>
+          <span class="legend-item"><span class="legend-color unavailable"></span> Jo i disponueshëm</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="beds-table">
+          <thead>
+            <tr>
+              <th>Dhoma</th>
+              <th>Shtrati</th>
+              <th>Statusi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let room of pavilion.rooms; let roomIndex = index">
+              <tr *ngFor="let bed of room.beds; let bedIndex = index" [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0">
+                <td class="room-cell" *ngIf="bedIndex === 0" [attr.rowspan]="room.beds.length"
+                  [class.room-cell-even]="roomIndex % 2 === 0" [class.room-cell-odd]="roomIndex % 2 !== 0">
+                  <span class="room-name">Dhoma {{ room.number }}</span>
+                  <span class="room-info">{{ getFreeBeds(room) }}/{{ room.beds.length }} të lirë</span>
+                </td>
+                <td class="bed-cell">{{ bed.number }}</td>
+                <td class="status-cell">
+                  <select class="status-dropdown"
+                    [class.free]="bed.status === 'free'"
+                    [class.occupied]="bed.status === 'occupied'"
+                    [class.unavailable]="bed.status === 'unavailable'"
+                    [value]="bed.status"
+                    (change)="setBedStatus(room, bed, $event)">
+                    <option value="free">I lirë</option>
+                    <option value="occupied">I zënë</option>
+                    <option value="unavailable">Jo i disponueshëm</option>
+                  </select>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

@@ -1,0 +1,25 @@
+<app-navbar></app-navbar>
+<div class="dashboard-container">
+  <div class="dashboard-header text-center">
+    <h1>Pavjonet</h1>
+  </div>
+
+  <div class="dashboard-content">
+    <div class="pavilions-grid">
+      <div class="pavilion-card" *ngFor="let pavilion of pavilions" (click)="navigateToPavilion(pavilion)">
+        <div class="pavilion-info">
+          <h3 class="pavilion-title">{{ pavilion.name }}</h3>
+          <p class="pavilion-description">{{ pavilion.description }}</p>
+          <div class="pavilion-beds">
+            <span class="beds-available">{{ pavilion.availableBeds }}</span>
+            <span class="beds-separator">/</span>
+            <span class="beds-total">{{ pavilion.bedCount }}</span>
+            <span class="beds-label">Shtretër të lirë</span>
+          </div>
+        </div>
+        <div class="pavilion-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>
