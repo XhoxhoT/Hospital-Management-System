@@ -27,15 +27,13 @@ public class RoomService {
 
     public RoomDTO createRoom(CreateRoom createRoom){
 
-        System.out.println(createRoom.getDepartmentId());
         Department department = departmentRepository.findById(createRoom.getDepartmentId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                " Room could not be created because" +
+                                "Room could not be created because" +
                                         " department with id " + createRoom.getDepartmentId() + " not found"
                         ));
 
-        System.out.println("test");
         Room room = modelMapper.map(createRoom, Room.class);
         room.setDepartment(department);
         Room savedRoom = roomRepository.save(room);
