@@ -1,6 +1,7 @@
 package com.backend.hospital.Controller.BedsController;
 
 import com.backend.hospital.DTO.BedDTO;
+import com.backend.hospital.DTO.ChangeStatus;
 import com.backend.hospital.DTO.CreateBed;
 import com.backend.hospital.Entity.Bed;
 import com.backend.hospital.Enums.BedStatus;
@@ -45,11 +46,11 @@ public class BedController {
     }
 
     @PatchMapping("/beds/{bedId}/status")
-    public ResponseEntity<Bed> changeBedStatus(
+    public ResponseEntity<BedDTO> changeBedStatus(
             @PathVariable Long bedId,
-            @RequestBody BedStatus request
+            @RequestBody ChangeStatus request
     ) {
-        Bed bed = bedService.changeStatus(bedId, request);
+        BedDTO bed = bedService.changeStatus(bedId, request.getBedStatus());
         return ResponseEntity.ok(bed);
     }
 

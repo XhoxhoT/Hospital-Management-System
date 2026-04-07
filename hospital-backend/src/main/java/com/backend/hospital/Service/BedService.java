@@ -63,7 +63,7 @@ public class BedService {
         return modelMapper.map(savedBed, BedDTO.class);
     }
 
-    public Bed changeStatus(Long bedId, BedStatus status){
+    public BedDTO changeStatus(Long bedId, BedStatus status){
 
         Bed bed = bedRepository.findById(bedId).
                 orElseThrow(() -> new ResourceNotFoundException("" +
@@ -76,8 +76,9 @@ public class BedService {
         }
 
         bed.setStatus(status);
+        BedDTO bedDTO = modelMapper.map(bed,BedDTO.class);
 
-        return bed;
+        return bedDTO;
     }
 
 
