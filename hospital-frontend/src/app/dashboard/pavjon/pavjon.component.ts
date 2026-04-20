@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PavilionService } from '../../services/pavilion.service';
-import { Pavilion, Room, Bed, BedStatus } from '../../models/pavilion.model';
+import { Pavilion, Room, Bed, BedStatus, BedStatusHistory, OutOfServiceAlert } from '../../models/pavilion.model';
 
 @Component({
   selector: 'app-pavjon',
@@ -25,6 +25,16 @@ export class PavjonComponent implements OnInit {
   addingBed = false;
   addBedError = '';
 
+  // Out-of-service alerts
+  alerts: OutOfServiceAlert[] = [];
+  alertsDismissed = false;
+  alertBedIds = new Set<number>();
+
+  // Bed history panel
+  historyBed: Bed | null = null;
+  historyEntries: BedStatusHistory[] = [];
+  historyLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -47,12 +57,29 @@ export class PavjonComponent implements OnInit {
       next: (pavilion) => {
         this.pavilion = pavilion;
         this.loading = false;
+        this.loadAlerts();
       },
       error: () => {
         this.error = 'Error loading department data';
         this.loading = false;
       }
     });
+  }
+
+  loadAlerts(): void {
+    this.pavilionService.getOutOfServiceAlerts(2).subscribe({
+      next: (all: OutOfServiceAlert[]) => {
+        const deptName = this.pavilion?.name ?? '';
+        this.alerts = all.filter(a => a.departmentName === deptName);
+        this.alertBedIds = new Set(this.alerts.map(a => a.bedId));
+        this.alertsDismissed = false;
+      },
+      error: () => {}
+    });
+  }
+
+  dismissAlerts(): void {
+    this.alertsDismissed = true;
   }
 
   setBedStatus(bed: Bed, event: Event): void {
@@ -129,6 +156,41 @@ export class PavjonComponent implements OnInit {
         this.addingBed = false;
       }
     });
+  }
+
+  openHistory(bed: Bed): void {
+    this.historyBed = bed;
+    this.historyEntries = [];
+    this.historyLoading = true;
+    this.pavilionService.getBedHistory(bed.bedId).subscribe({
+      next: (entries) => {
+        this.historyEntries = entries;
+        this.historyLoading = false;
+      },
+      error: () => {
+        this.historyLoading = false;
+      }
+    });
+  }
+
+  closeHistory(): void {
+    this.historyBed = null;
+    this.historyEntries = [];
+  }
+
+  statusLabel(status: BedStatus | null): string {
+    if (!status) return '—';
+    return status === 'FREE' ? 'I lirë' : status === 'OCCUPIED' ? 'I zënë' : 'Jo i disponueshëm';
+  }
+
+  statusDuration(bed: Bed): string {
+    if (!bed.statusSince) return '';
+    const ms = Date.now() - new Date(bed.statusSince).getTime();
+    const totalMinutes = Math.floor(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours === 0) return `${minutes}m`;
+    return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
   }
 
   getFreeBeds(room: Room): number {

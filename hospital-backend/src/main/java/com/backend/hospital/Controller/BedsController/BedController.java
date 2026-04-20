@@ -1,13 +1,12 @@
 package com.backend.hospital.Controller.BedsController;
 
 import com.backend.hospital.DTO.BedDTO;
+import com.backend.hospital.DTO.BedStatusHistoryDTO;
+import com.backend.hospital.DTO.OutOfServiceAlertDTO;
 import com.backend.hospital.DTO.ChangeStatus;
 import com.backend.hospital.DTO.CreateBed;
-import com.backend.hospital.Entity.Bed;
-import com.backend.hospital.Enums.BedStatus;
 import com.backend.hospital.Service.BedService;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -52,6 +51,17 @@ public class BedController {
     ) {
         BedDTO bed = bedService.changeStatus(bedId, request.getBedStatus());
         return ResponseEntity.ok(bed);
+    }
+
+    @GetMapping("/beds/{bedId}/history")
+    public ResponseEntity<List<BedStatusHistoryDTO>> getBedHistory(@PathVariable Long bedId) {
+        return ResponseEntity.ok(bedService.getBedHistory(bedId));
+    }
+
+    @GetMapping("/beds/alerts")
+    public ResponseEntity<List<OutOfServiceAlertDTO>> getOutOfServiceAlerts(
+            @RequestParam(defaultValue = "2") int minutes) {
+        return ResponseEntity.ok(bedService.getOutOfServiceAlerts(minutes));
     }
 
 }

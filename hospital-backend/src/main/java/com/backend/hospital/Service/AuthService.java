@@ -23,6 +23,10 @@ public class AuthService {
             new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
         UserDetails user = userDetailsService.loadUserByUsername(request.getUsername());
-        return new AuthResponse(jwtService.generateToken(user));
+        String role = user.getAuthorities().stream()
+                .findFirst()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .orElse("");
+        return new AuthResponse(jwtService.generateToken(user), role);
     }
 }

@@ -1,6 +1,7 @@
 package com.backend.hospital.Configuration;
 
 
+import com.backend.hospital.DTO.BedDTO;
 import com.backend.hospital.DTO.CreateBed;
 import com.backend.hospital.DTO.CreateDepartment;
 import com.backend.hospital.DTO.CreateRoom;
@@ -28,6 +29,14 @@ public class ModelMapperConfig {
         modelMapper.typeMap(CreateDepartment.class, Department.class)
                 .addMappings(mapper -> mapper.skip(Department :: setId));
 
+        // Explicit Bed -> BedDTO mapping: field names differ between entity and DTO
+        modelMapper.typeMap(Bed.class, BedDTO.class)
+                .addMappings(mapper -> {
+                    mapper.map(Bed::getId, BedDTO::setBedId);
+                    mapper.map(Bed::getBedNumber, BedDTO::setBednumber);
+                    mapper.map(Bed::getStatus, BedDTO::setBedStatus);
+                    mapper.map(src -> src.getRoom().getId(), BedDTO::setRoomId);
+                });
 
         return modelMapper;
     }

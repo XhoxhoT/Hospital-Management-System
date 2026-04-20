@@ -16,10 +16,32 @@ export class DashboardComponent implements OnInit {
   loading = false;
   error = '';
 
+  searchQuery = '';
+
   showAddForm = false;
   newDepartmentName = '';
   addingDepartment = false;
   addError = '';
+
+  get filteredPavilions(): Pavilion[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.pavilions;
+    return this.pavilions.filter(p => p.name.toLowerCase().includes(q));
+  }
+
+  getOccupiedCount(pavilion: Pavilion): number {
+    return pavilion.totalBeds - pavilion.freeBeds;
+  }
+
+  getOccupiedPercent(pavilion: Pavilion): number {
+    if (pavilion.totalBeds === 0) return 0;
+    return (this.getOccupiedCount(pavilion) / pavilion.totalBeds) * 100;
+  }
+
+  getFreePercent(pavilion: Pavilion): number {
+    if (pavilion.totalBeds === 0) return 0;
+    return (pavilion.freeBeds / pavilion.totalBeds) * 100;
+  }
 
   constructor(
     private authService: AuthService,

@@ -57,6 +57,25 @@
       </div>
     </div>
 
+    <!-- Out-of-service alerts banner -->
+    <div class="alerts-banner" *ngIf="alerts.length > 0 && !alertsDismissed">
+      <div class="alerts-banner-header">
+        <div class="alerts-title">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ alerts.length }} shtrat{{ alerts.length === 1 ? '' : 'ë' }} jashtë shërbimit prej mbi 2 minutash</span>
+        </div>
+        <button class="btn-dismiss" (click)="dismissAlerts()">✕</button>
+      </div>
+      <ul class="alerts-list">
+        <li *ngFor="let alert of alerts" class="alert-item">
+          <i class="fa-solid fa-bed"></i>
+          <span class="alert-bed">Shtrati {{ alert.bedNumber }}</span>
+          <span class="alert-room">Dhoma {{ alert.roomNumber }}</span>
+          <span class="alert-duration">{{ alert.minutesInStatus }}m</span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Beds Table Section -->
     <div class="table-section">
       <div class="section-header">
@@ -99,6 +118,7 @@
               <th>Dhoma</th>
               <th>Shtrati</th>
               <th>Statusi</th>
+              <th>Historiku</th>
             </tr>
           </thead>
           <tbody>
@@ -106,17 +126,20 @@
               <!-- Bed rows -->
               <tr *ngFor="let bed of room.beds; let bedIndex = index"
                 [class.room-even]="roomIndex % 2 === 0"
-                [class.room-odd]="roomIndex % 2 !== 0">
+                [class.room-odd]="roomIndex % 2 !== 0"
+                [class.bed-alert]="alertBedIds.has(bed.bedId)">
                 <td class="room-cell"
                   *ngIf="bedIndex === 0"
-                  [attr.rowspan]="room.beds.length + 1"
+                  [attr.rowspan]="room.beds.length + (addBedForRoomId === room.id ? 1 : 0)"
                   [class.room-cell-even]="roomIndex % 2 === 0"
                   [class.room-cell-odd]="roomIndex % 2 !== 0">
-                  <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                  <div class="room-name-row">
+                    <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                    <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                      {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                    </button>
+                  </div>
                   <span class="room-info">{{ getFreeBeds(room) }}/{{ room.beds.length }} të lirë</span>
-                  <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
-                    {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
-                  </button>
                 </td>
                 <td class="bed-cell">{{ bed.bednumber }}</td>
                 <td class="status-cell">
@@ -130,6 +153,12 @@
                     <option value="OCCUPIED">I zënë</option>
                     <option value="OUT_OF_SERVICE">Jo i disponueshëm</option>
                   </select>
+                  <span class="status-duration" *ngIf="bed.statusSince">{{ statusDuration(bed) }}</span>
+                </td>
+                <td class="history-cell">
+                  <button class="btn-history" (click)="openHistory(bed)" title="Shiko historikun">
+                    <i class="fa-regular fa-clock"></i>
+                  </button>
                 </td>
               </tr>
               <!-- Empty room (no beds yet) placeholder row -->
@@ -139,13 +168,15 @@
                 <td class="room-cell"
                   [class.room-cell-even]="roomIndex % 2 === 0"
                   [class.room-cell-odd]="roomIndex % 2 !== 0">
-                  <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                  <div class="room-name-row">
+                    <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                    <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                      {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                    </button>
+                  </div>
                   <span class="room-info">0/0 të lirë</span>
-                  <button class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
-                    {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
-                  </button>
                 </td>
-                <td colspan="2" class="empty-room-cell">Nuk ka shtretër</td>
+                <td colspan="3" class="empty-room-cell">Nuk ka shtretër</td>
               </tr>
               <!-- Add Bed inline row -->
               <tr *ngIf="addBedForRoomId === room.id"
@@ -174,4 +205,38 @@
     </div>
   </div>
 </div>
+<!-- History Side Panel -->
+<div class="history-overlay" *ngIf="historyBed" (click)="closeHistory()"></div>
+<div class="history-panel" *ngIf="historyBed">
+  <div class="history-panel-header">
+    <h3>Historiku — Shtrati {{ historyBed.bednumber }}</h3>
+    <button class="btn-close-history" (click)="closeHistory()">✕</button>
+  </div>
+  <div class="history-panel-body">
+    <div *ngIf="historyLoading" class="history-loading">
+      <div class="spinner-sm"></div>
+    </div>
+    <div *ngIf="!historyLoading && historyEntries.length === 0" class="history-empty">
+      Nuk ka ndryshime të regjistruara.
+    </div>
+    <ul *ngIf="!historyLoading && historyEntries.length > 0" class="history-list">
+      <li *ngFor="let entry of historyEntries" class="history-entry">
+        <div class="history-change">
+          <span class="history-status" [class]="'hs-' + (entry.previousStatus ?? 'none')">
+            {{ statusLabel(entry.previousStatus) }}
+          </span>
+          <span class="history-arrow">→</span>
+          <span class="history-status" [class]="'hs-' + entry.newStatus">
+            {{ statusLabel(entry.newStatus) }}
+          </span>
+        </div>
+        <div class="history-meta">
+          <span class="history-by">{{ entry.changedBy }}</span>
+          <span class="history-at">{{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
 <app-footer></app-footer>

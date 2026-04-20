@@ -9,10 +9,8 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { AuthGuard } from './guards/auth.guard';
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { FooterComponent } from './layout/footer/footer.component';
-import { LayoutComponent } from './layout/layout.component';
 import { NavbarComponent } from './layout/navbar/navbar.component';
 import { LoginComponent } from './login/login.component';
-import { RegisterComponent } from './register/register.component';
 import { PavjonComponent } from './dashboard/pavjon/pavjon.component';
 
 const routes: Routes = [
@@ -26,10 +24,8 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     LoginComponent,
-    RegisterComponent,
     DashboardComponent,
     PavjonComponent,
-    LayoutComponent,
     NavbarComponent,
     FooterComponent
   ],

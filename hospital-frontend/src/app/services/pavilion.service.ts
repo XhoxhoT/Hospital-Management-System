@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { Bed, BedStatus, Pavilion, Room } from '../models/pavilion.model';
+import { Bed, BedStatus, BedStatusHistory, OutOfServiceAlert, Pavilion, Room } from '../models/pavilion.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -77,5 +77,13 @@ export class PavilionService {
 
   createBed(bedNumber: string, roomId: number): Observable<Bed> {
     return this.http.post<Bed>(`${this.apiUrl}/api/bed/beds`, { bedNumber, roomId });
+  }
+
+  getBedHistory(bedId: number): Observable<BedStatusHistory[]> {
+    return this.http.get<BedStatusHistory[]>(`${this.apiUrl}/api/beds/${bedId}/history`);
+  }
+
+  getOutOfServiceAlerts(minutes: number = 2): Observable<OutOfServiceAlert[]> {
+    return this.http.get<OutOfServiceAlert[]>(`${this.apiUrl}/api/beds/alerts?minutes=${minutes}`);
   }
 }
