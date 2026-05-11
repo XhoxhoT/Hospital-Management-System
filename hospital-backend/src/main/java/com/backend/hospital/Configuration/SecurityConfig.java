@@ -43,11 +43,17 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/swagger-ui-custom.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                // Admin-only: create departments, rooms, beds, users
+                // Admin-only: departments and users
                 .requestMatchers(HttpMethod.POST, "/api/departments").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/rooms/room").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/bed/beds").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Rooms and beds: ADMIN or DEPARTMENT_STAFF
+                .requestMatchers(HttpMethod.POST, "/api/rooms/room").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
+                .requestMatchers(HttpMethod.POST, "/api/bed/beds").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/rooms/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/beds/*/name").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
+                .requestMatchers(HttpMethod.DELETE, "/api/rooms/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
+                .requestMatchers(HttpMethod.DELETE, "/api/beds/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
                 // Bed status changes: DEPARTMENT_STAFF or ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/beds/*/occupy").hasAnyRole("DEPARTMENT_STAFF", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/beds/*/status").hasAnyRole("DEPARTMENT_STAFF", "ADMIN")

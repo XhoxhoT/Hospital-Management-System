@@ -3,13 +3,40 @@
   <div class="dashboard-header">
     <div class="header-row">
       <h1>Pavjonet</h1>
-      <button class="btn btn-primary" (click)="toggleAddForm()">
-        {{ showAddForm ? '✕ Anulo' : '+ Shto Pavjon' }}
-      </button>
+      <div class="header-actions" *ngIf="isAdmin">
+        <button class="btn btn-primary" (click)="toggleAddForm()">
+          {{ showAddForm ? '✕ Anulo' : '+ Shto Pavjon' }}
+        </button>
+        <button class="btn btn-secondary" (click)="toggleUserForm()">
+          {{ showUserForm ? '✕ Anulo' : '+ Krijo Përdorues' }}
+        </button>
+      </div>
     </div>
 
     <div class="search-bar">
       <input type="text" class="form-input search-input" placeholder="Kërko pavjon..." [(ngModel)]="searchQuery" />
+    </div>
+
+    <div *ngIf="showUserForm" class="add-form user-form">
+      <div class="user-form-grid">
+        <input type="text" class="form-input" placeholder="Username" [(ngModel)]="newUsername" />
+        <input type="password" class="form-input" placeholder="Password" [(ngModel)]="newPassword" />
+        <select class="form-input form-select" [(ngModel)]="newRole">
+          <option *ngFor="let role of roles" [value]="role">{{ roleLabel(role) }}</option>
+        </select>
+        <select *ngIf="newRole === 'DEPARTMENT_STAFF'" class="form-input form-select" [(ngModel)]="newDepartmentId">
+          <option [ngValue]="null" disabled>Select department...</option>
+          <option *ngFor="let p of pavilions" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
+      </div>
+      <div class="user-form-actions">
+        <button class="btn btn-primary" (click)="submitCreateUser()"
+          [disabled]="creatingUser || !newUsername.trim() || !newPassword.trim()">
+          {{ creatingUser ? 'Duke krijuar...' : 'Krijo' }}
+        </button>
+        <span *ngIf="userError" class="form-error">{{ userError }}</span>
+        <span *ngIf="userSuccess" class="form-success">{{ userSuccess }}</span>
+      </div>
     </div>
 
     <div *ngIf="showAddForm" class="add-form">
@@ -35,10 +62,11 @@
   <div class="dashboard-content" *ngIf="!loading && !error">
     <div class="pavilions-grid">
       <div *ngIf="filteredPavilions.length === 0" class="no-results">
-        No departments match "{{ searchQuery }}"
+        Asnjë departament nuk përputhet me "{{ searchQuery }}"
       </div>
 
       <div class="pavilion-card" *ngFor="let pavilion of filteredPavilions" (click)="navigateToPavilion(pavilion)">
+        <button *ngIf="isAdmin" class="btn-delete-pavilion" (click)="deletePavilion(pavilion, $event)" title="Fshi departamentin">✕</button>
         <div class="pavilion-arrow">→</div>
         <div class="pavilion-info">
           <h3 class="pavilion-title">{{ pavilion.name }}</h3>
@@ -46,7 +74,7 @@
             <span class="beds-available">{{ pavilion.freeBeds }}</span>
             <span class="beds-separator">/</span>
             <span class="beds-total">{{ pavilion.totalBeds }}</span>
-            <span class="beds-label">beds free</span>
+            <span class="beds-label">shtretër të lirë</span>
           </div>
           <div class="capacity-bar-wrapper">
             <div class="capacity-bar">
@@ -54,8 +82,8 @@
               <div class="capacity-segment seg-free" [style.width.%]="getFreePercent(pavilion)"></div>
             </div>
             <div class="capacity-labels">
-              <span class="lbl-occupied">{{ getOccupiedCount(pavilion) }} occupied</span>
-              <span class="lbl-free">{{ pavilion.freeBeds }} free</span>
+              <span class="lbl-occupied">{{ getOccupiedCount(pavilion) }} të zëna</span>
+              <span class="lbl-free">{{ pavilion.freeBeds }} të lira</span>
             </div>
           </div>
         </div>

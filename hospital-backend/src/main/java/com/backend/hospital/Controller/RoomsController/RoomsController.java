@@ -2,6 +2,7 @@ package com.backend.hospital.Controller.RoomsController;
 
 import com.backend.hospital.DTO.CreateRoom;
 import com.backend.hospital.DTO.RoomDTO;
+import com.backend.hospital.DTO.UpdateNameRequest;
 import com.backend.hospital.Entity.Room;
 import com.backend.hospital.Service.RoomService;
 
@@ -43,5 +44,16 @@ public class RoomsController {
         return ResponseEntity.status(201).body(roomDTO);
     }
 
+    @PatchMapping("/rooms/{roomId}")
+    public ResponseEntity<RoomDTO> updateRoomName(
+            @PathVariable Long roomId,
+            @Valid @RequestBody UpdateNameRequest request) {
+        return ResponseEntity.ok(roomService.updateRoomName(roomId, request.getName()));
+    }
 
+    @DeleteMapping("/rooms/{roomId}")
+    public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
+        roomService.deleteRoom(roomId);
+        return ResponseEntity.noContent().build();
+    }
 }

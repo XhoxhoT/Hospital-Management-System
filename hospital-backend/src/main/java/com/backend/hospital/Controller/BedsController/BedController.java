@@ -5,7 +5,9 @@ import com.backend.hospital.DTO.BedStatusHistoryDTO;
 import com.backend.hospital.DTO.OutOfServiceAlertDTO;
 import com.backend.hospital.DTO.ChangeStatus;
 import com.backend.hospital.DTO.CreateBed;
+import com.backend.hospital.DTO.UpdateNameRequest;
 import com.backend.hospital.Service.BedService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,4 +66,16 @@ public class BedController {
         return ResponseEntity.ok(bedService.getOutOfServiceAlerts(minutes));
     }
 
+    @PatchMapping("/beds/{bedId}/name")
+    public ResponseEntity<BedDTO> updateBedName(
+            @PathVariable Long bedId,
+            @Valid @RequestBody UpdateNameRequest request) {
+        return ResponseEntity.ok(bedService.updateBedName(bedId, request.getName()));
+    }
+
+    @DeleteMapping("/beds/{bedId}")
+    public ResponseEntity<Void> deleteBed(@PathVariable Long bedId) {
+        bedService.deleteBed(bedId);
+        return ResponseEntity.noContent().build();
+    }
 }

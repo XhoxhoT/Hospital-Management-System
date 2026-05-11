@@ -33,7 +33,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
         const username = this.decodeJwtUsername(response.token);
-        const user: User = { username, token: response.token };
+        const user: User = { username, token: response.token, role: response.role };
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('token', response.token);
         this.currentUserSubject.next(user);
@@ -50,6 +50,14 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.currentUserValue;
+  }
+
+  isAdmin(): boolean {
+    return this.currentUserValue?.role === 'ADMIN';
+  }
+
+  isDepartmentStaff(): boolean {
+    return this.currentUserValue?.role === 'DEPARTMENT_STAFF';
   }
 
   getToken(): string | null {

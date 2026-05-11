@@ -47,6 +47,52 @@
   font-size: 0.9rem;
 }
 
+.form-success {
+  color: #2e7d32;
+  font-size: 0.9rem;
+}
+
+.form-select {
+  flex: 1;
+  max-width: 220px;
+  background: white;
+  cursor: pointer;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1.5px solid #d0d0d0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.user-form {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.user-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.user-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -238,6 +284,25 @@
   font-size: 0.9rem;
   color: #888;
   margin-left: 0.5rem;
+}
+
+.btn-delete-pavilion {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.btn-delete-pavilion:hover {
+  background: #ffcdd2;
 }
 
 .pavilion-arrow {

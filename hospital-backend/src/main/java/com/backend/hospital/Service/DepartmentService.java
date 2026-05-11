@@ -8,10 +8,12 @@ import com.backend.hospital.Entity.Department;
 import com.backend.hospital.Enums.BedStatus;
 import com.backend.hospital.Exceptions.ResourceNotFoundException;
 import com.backend.hospital.Repository.BedRepository;
+import com.backend.hospital.Repository.BedStatusHistoryRepository;
 import com.backend.hospital.Repository.DepartmentRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -19,6 +21,7 @@ public class DepartmentService {
 
     private DepartmentRepository departmentRepository;
     private BedRepository bedRepository;
+    private BedStatusHistoryRepository bedStatusHistoryRepository;
     private ModelMapper modelMapper;
 
 
@@ -36,6 +39,15 @@ public class DepartmentService {
 
         Department department = modelMapper.map(createDepartment, Department.class);
         return modelMapper.map(departmentRepository.save(department), DepartmentDTO.class);
+    }
+
+    @Transactional
+    public void deleteDepartment(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + departmentId));
+
+        bedStatusHistoryRepository.deleteByBedRoomDepartmentId(departmentId);
+        departmentRepository.delete(department);
     }
 
     public long getFreeBeds(Long departmentId) {

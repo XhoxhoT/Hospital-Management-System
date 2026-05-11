@@ -294,6 +294,100 @@
   background: #bbdefb;
 }
 
+.btn-delete-room {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.btn-delete-room:hover {
+  background: #ffcdd2;
+}
+
+.btn-delete-bed {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.3rem;
+}
+
+.btn-delete-bed:hover {
+  background: #ffcdd2;
+}
+
+.btn-edit-name {
+  flex-shrink: 0;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.8rem;
+  background: none;
+  color: #aaa;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-edit-name:hover {
+  background: #f0f0f0;
+  color: #555;
+  border-color: #ddd;
+}
+
+.edit-name-input {
+  width: 90px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  flex: unset;
+  max-width: unset;
+}
+
+.edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-save-edit {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save-edit:hover {
+  background: #c8e6c9;
+}
+
+.btn-cancel-edit {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-cancel-edit:hover {
+  background: #ffcdd2;
+}
+
 .room-info {
   display: block;
   font-size: 1.1rem;

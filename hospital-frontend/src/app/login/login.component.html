@@ -1,8 +1,8 @@
 <app-navbar></app-navbar>
 <div class="login-container">
   <div class="login-card">
-    <h2>Login to HOSPProject</h2>
-    <p class="subtitle">Enter your credentials to access your account</p>
+    <h2>Hyrje në Menaxhimin e Spitalit</h2>
+    <p class="subtitle">Shkruani kredencialet tuaja për të hyrë</p>
 
     <div *ngIf="successMessage" class="alert alert-success">
       {{ successMessage }}
@@ -14,28 +14,28 @@
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="username">Emri i përdoruesit</label>
         <input type="text" id="username" formControlName="username" class="form-control"
-          [class.is-invalid]="submitted && f['username'].errors" placeholder="Enter your username" />
+          [class.is-invalid]="submitted && f['username'].errors" placeholder="Shkruani emrin e përdoruesit" />
         <div *ngIf="submitted && f['username'].errors" class="invalid-feedback">
-          <div *ngIf="f['username'].errors['required']">Username is required</div>
+          <div *ngIf="f['username'].errors['required']">Emri i përdoruesit është i detyrueshëm</div>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">Fjalëkalimi</label>
         <input type="password" id="password" formControlName="password" class="form-control"
-          [class.is-invalid]="submitted && f['password'].errors" placeholder="Enter your password" />
+          [class.is-invalid]="submitted && f['password'].errors" placeholder="Shkruani fjalëkalimin" />
         <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
-          <div *ngIf="f['password'].errors['required']">Password is required</div>
-          <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
+          <div *ngIf="f['password'].errors['required']">Fjalëkalimi është i detyrueshëm</div>
+          <div *ngIf="f['password'].errors['minlength']">Fjalëkalimi duhet të ketë të paktën 6 karaktere</div>
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
         <span *ngIf="loading" class="spinner"></span>
-        <span *ngIf="!loading">Login</span>
-        <span *ngIf="loading">Logging in...</span>
+        <span *ngIf="!loading">Hyrje</span>
+        <span *ngIf="loading">Duke hyrë...</span>
       </button>
     </form>
   </div>

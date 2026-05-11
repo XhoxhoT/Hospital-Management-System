@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 import { PavilionService } from '../../services/pavilion.service';
 import { Pavilion, Room, Bed, BedStatus, BedStatusHistory, OutOfServiceAlert } from '../../models/pavilion.model';
 
@@ -19,6 +20,12 @@ export class PavjonComponent implements OnInit {
   addingRoom = false;
   addRoomError = '';
 
+  // Inline name editing
+  editingRoomId: number | null = null;
+  editRoomName = '';
+  editingBedId: number | null = null;
+  editBedName = '';
+
   // Add bed form — tracks which room is active
   addBedForRoomId: number | null = null;
   newBedNumber = '';
@@ -35,9 +42,18 @@ export class PavjonComponent implements OnInit {
   historyEntries: BedStatusHistory[] = [];
   historyLoading = false;
 
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  get canManageRooms(): boolean {
+    return this.authService.isAdmin() || this.authService.isDepartmentStaff();
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
     private pavilionService: PavilionService
   ) {}
 
@@ -46,7 +62,7 @@ export class PavjonComponent implements OnInit {
     if (id) {
       this.loadPavilion(+id);
     } else {
-      this.error = 'Department ID not provided';
+      this.error = 'ID e departamentit nuk është dhënë';
       this.loading = false;
     }
   }
@@ -60,7 +76,7 @@ export class PavjonComponent implements OnInit {
         this.loadAlerts();
       },
       error: () => {
-        this.error = 'Error loading department data';
+        this.error = 'Gabim gjatë ngarkimit të të dhënave të departamentit';
         this.loading = false;
       }
     });
@@ -125,7 +141,9 @@ export class PavjonComponent implements OnInit {
         this.addingRoom = false;
       },
       error: (err) => {
-        this.addRoomError = err.error?.message ?? 'Could not create room';
+        this.addRoomError = err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Dhoma nuk mund të krijohet';
         this.addingRoom = false;
       }
     });
@@ -152,8 +170,96 @@ export class PavjonComponent implements OnInit {
         this.recalculateStats();
       },
       error: (err) => {
-        this.addBedError = err.error?.message ?? 'Could not create bed';
+        this.addBedError = err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Shtrati nuk mund të krijohet';
         this.addingBed = false;
+      }
+    });
+  }
+
+  startEditRoom(room: Room): void {
+    this.editingRoomId = room.id;
+    this.editRoomName = room.roomNumber;
+  }
+
+  cancelEditRoom(): void {
+    this.editingRoomId = null;
+    this.editRoomName = '';
+  }
+
+  saveRoomName(room: Room): void {
+    const name = this.editRoomName.trim();
+    if (!name || name === room.roomNumber) { this.cancelEditRoom(); return; }
+
+    this.pavilionService.updateRoomName(room.id, name).subscribe({
+      next: (updated) => {
+        room.roomNumber = (updated as any).roomNumber ?? name;
+        this.cancelEditRoom();
+      },
+      error: (err) => {
+        alert(err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Emri i dhomës nuk mund të ndryshohet');
+      }
+    });
+  }
+
+  startEditBed(bed: Bed): void {
+    this.editingBedId = bed.bedId;
+    this.editBedName = bed.bednumber;
+  }
+
+  cancelEditBed(): void {
+    this.editingBedId = null;
+    this.editBedName = '';
+  }
+
+  saveBedName(bed: Bed): void {
+    const name = this.editBedName.trim();
+    if (!name || name === bed.bednumber) { this.cancelEditBed(); return; }
+
+    this.pavilionService.updateBedName(bed.bedId, name).subscribe({
+      next: (updated) => {
+        bed.bednumber = (updated as any).bednumber ?? name;
+        this.cancelEditBed();
+      },
+      error: (err) => {
+        alert(err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Emri i shtratit nuk mund të ndryshohet');
+      }
+    });
+  }
+
+  deleteRoom(room: Room): void {
+    if (!confirm(`Jeni i sigurt që doni të fshini dhomën ${room.roomNumber}? Do të fshihen edhe të gjithë shtretet.`)) return;
+
+    this.pavilionService.deleteRoom(room.id).subscribe({
+      next: () => {
+        this.pavilion!.rooms = this.pavilion!.rooms.filter(r => r.id !== room.id);
+        this.recalculateStats();
+      },
+      error: (err) => {
+        alert(err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Dhoma nuk mund të fshihet');
+      }
+    });
+  }
+
+  deleteBed(bed: Bed, room: Room): void {
+    if (!confirm(`Jeni i sigurt që doni të fshini shtratin ${bed.bednumber}?`)) return;
+
+    this.pavilionService.deleteBed(bed.bedId).subscribe({
+      next: () => {
+        room.beds = room.beds.filter(b => b.bedId !== bed.bedId);
+        this.recalculateStats();
+      },
+      error: (err) => {
+        alert(err.status === 403
+          ? 'Ju nuk keni akses ose nuk i përkisni këtij departamenti'
+          : err.error?.message ?? 'Shtrati nuk mund të fshihet');
       }
     });
   }

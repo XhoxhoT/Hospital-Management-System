@@ -37,10 +37,20 @@ public class BedService {
     private ModelMapper modelMapper;
     private BedStatusHistoryRepository bedStatusHistoryRepository;
 
+    @Transactional
     public BedDTO createBed(CreateBed createBed) {
         Room room = roomRepository.findById(createBed.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Room with id " + createBed.getRoomId() + " not found"));
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user && user.getRole() == Role.DEPARTMENT_STAFF) {
+            Long roomDeptId = room.getDepartment().getId();
+            Long userDeptId = user.getDepartment() != null ? user.getDepartment().getId() : null;
+            if (!roomDeptId.equals(userDeptId)) {
+                throw new AccessDeniedException("You can only add beds to rooms in your own department");
+            }
+        }
 
         Bed bed = modelMapper.map(createBed, Bed.class);
         bed.setRoom(room);
@@ -86,6 +96,28 @@ public class BedService {
 
         saveHistory(bed, previous, status);
         return result;
+    }
+
+    @Transactional
+    public BedDTO updateBedName(Long bedId, String newName) {
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bed with id " + bedId + " not found"));
+
+        assertDepartmentAccess(bed);
+
+        bed.setBedNumber(newName);
+        return modelMapper.map(bedRepository.save(bed), BedDTO.class);
+    }
+
+    @Transactional
+    public void deleteBed(Long bedId) {
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bed with id " + bedId + " not found"));
+
+        assertDepartmentAccess(bed);
+
+        bedStatusHistoryRepository.deleteByBedId(bedId);
+        bedRepository.delete(bed);
     }
 
     public List<BedDTO> getBedsByRoomId(Long roomId) {

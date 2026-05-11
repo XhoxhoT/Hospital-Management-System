@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface BedStatusHistoryRepository extends JpaRepository<BedStatusHistory, Long> {
     List<BedStatusHistory> findByBedIdOrderByChangedAtDesc(Long bedId);
+    void deleteByBedId(Long bedId);
+    void deleteByBedRoomId(Long roomId);
+    void deleteByBedRoomDepartmentId(Long departmentId);
 }

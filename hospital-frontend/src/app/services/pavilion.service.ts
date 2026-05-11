@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { Bed, BedStatus, BedStatusHistory, OutOfServiceAlert, Pavilion, Room } from '../models/pavilion.model';
+import { CreateUserRequest } from '../models/user.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -85,5 +86,29 @@ export class PavilionService {
 
   getOutOfServiceAlerts(minutes: number = 2): Observable<OutOfServiceAlert[]> {
     return this.http.get<OutOfServiceAlert[]>(`${this.apiUrl}/api/beds/alerts?minutes=${minutes}`);
+  }
+
+  createUser(request: CreateUserRequest): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/users`, request);
+  }
+
+  updateRoomName(roomId: number, roomNumber: string): Observable<Room> {
+    return this.http.patch<Room>(`${this.apiUrl}/api/rooms/${roomId}`, { name: roomNumber });
+  }
+
+  updateBedName(bedId: number, bedNumber: string): Observable<Bed> {
+    return this.http.patch<Bed>(`${this.apiUrl}/api/beds/${bedId}/name`, { name: bedNumber });
+  }
+
+  deleteDepartment(departmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/departments/${departmentId}`);
+  }
+
+  deleteRoom(roomId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/rooms/${roomId}`);
+  }
+
+  deleteBed(bedId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/beds/${bedId}`);
   }
 }
