@@ -2,6 +2,7 @@ export interface User {
   username: string;
   token?: string;
   role?: string;
+  privileged?: boolean;
 }
 
 export interface LoginRequest {
@@ -12,6 +13,7 @@ export interface LoginRequest {
 export interface AuthResponse {
   token: string;
   role: string;
+  privileged: boolean;
 }
 
 export interface CreateUserRequest {
@@ -19,4 +21,5 @@ export interface CreateUserRequest {
   password: string;
   role: string;
   departmentId?: number | null;
+  privileged?: boolean;
 }

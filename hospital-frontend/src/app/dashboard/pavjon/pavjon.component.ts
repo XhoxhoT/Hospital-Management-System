@@ -47,7 +47,11 @@ export class PavjonComponent implements OnInit {
   }
 
   get canManageRooms(): boolean {
-    return this.authService.isAdmin() || this.authService.isDepartmentStaff();
+    return this.authService.isAdmin() || this.authService.isPrivilegedDepartmentStaff();
+  }
+
+  get canChangeBedStatus(): boolean {
+    return this.authService.isAdmin() || this.authService.isPrivilegedDepartmentStaff();
   }
 
   constructor(

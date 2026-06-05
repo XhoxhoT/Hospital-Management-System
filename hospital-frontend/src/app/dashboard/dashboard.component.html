@@ -28,6 +28,10 @@
           <option [ngValue]="null" disabled>Select department...</option>
           <option *ngFor="let p of pavilions" [ngValue]="p.id">{{ p.name }}</option>
         </select>
+        <label *ngIf="newRole === 'DEPARTMENT_STAFF'" class="privilege-label">
+          <input type="checkbox" [(ngModel)]="newPrivileged" />
+          Të drejta modifikimi
+        </label>
       </div>
       <div class="user-form-actions">
         <button class="btn btn-primary" (click)="submitCreateUser()"

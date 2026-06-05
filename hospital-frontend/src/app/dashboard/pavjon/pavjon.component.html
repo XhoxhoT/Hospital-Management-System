@@ -168,6 +168,7 @@
                     [class.free]="bed.bedStatus === 'FREE'"
                     [class.occupied]="bed.bedStatus === 'OCCUPIED'"
                     [class.unavailable]="bed.bedStatus === 'OUT_OF_SERVICE'"
+                    [disabled]="!canChangeBedStatus"
                     [value]="bed.bedStatus"
                     (change)="setBedStatus(bed, $event)">
                     <option value="FREE">I lirë</option>

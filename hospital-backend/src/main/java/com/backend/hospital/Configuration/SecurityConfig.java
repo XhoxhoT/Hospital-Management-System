@@ -47,16 +47,16 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/departments").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                // Rooms and beds: ADMIN or DEPARTMENT_STAFF
-                .requestMatchers(HttpMethod.POST, "/api/rooms/room").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                .requestMatchers(HttpMethod.POST, "/api/bed/beds").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                .requestMatchers(HttpMethod.PATCH, "/api/rooms/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                .requestMatchers(HttpMethod.PATCH, "/api/beds/*/name").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                .requestMatchers(HttpMethod.DELETE, "/api/rooms/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                .requestMatchers(HttpMethod.DELETE, "/api/beds/**").hasAnyRole("ADMIN", "DEPARTMENT_STAFF")
-                // Bed status changes: DEPARTMENT_STAFF or ADMIN
-                .requestMatchers(HttpMethod.POST, "/api/beds/*/occupy").hasAnyRole("DEPARTMENT_STAFF", "ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/beds/*/status").hasAnyRole("DEPARTMENT_STAFF", "ADMIN")
+                // Rooms and beds: ADMIN or privileged DEPARTMENT_STAFF (DEPT_WRITE authority)
+                .requestMatchers(HttpMethod.POST, "/api/rooms/room").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.POST, "/api/bed/beds").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.PATCH, "/api/rooms/**").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.PATCH, "/api/beds/*/name").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.DELETE, "/api/rooms/**").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.DELETE, "/api/beds/**").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                // Bed status changes: privileged DEPARTMENT_STAFF or ADMIN
+                .requestMatchers(HttpMethod.POST, "/api/beds/*/occupy").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
+                .requestMatchers(HttpMethod.PATCH, "/api/beds/*/status").hasAnyAuthority("ROLE_ADMIN", "DEPT_WRITE")
                 // Everything else: any authenticated user
                 .anyRequest().authenticated()
             )

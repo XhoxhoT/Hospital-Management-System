@@ -21,4 +21,7 @@ public class CreateUserRequest {
 
     // Required only when role is DEPARTMENT_STAFF
     private Long departmentId;
+
+    // Only meaningful for DEPARTMENT_STAFF; grants write access to their department
+    private boolean privileged = false;
 }

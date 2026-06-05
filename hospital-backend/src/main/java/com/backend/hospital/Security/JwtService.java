@@ -22,12 +22,16 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         String role = userDetails.getAuthorities().stream()
+                .filter(a -> a.getAuthority().startsWith("ROLE_"))
                 .findFirst()
                 .map(a -> a.getAuthority().replace("ROLE_", ""))
                 .orElse("");
+        boolean privileged = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("DEPT_WRITE"));
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("role", role)
+                .claim("privileged", privileged)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())

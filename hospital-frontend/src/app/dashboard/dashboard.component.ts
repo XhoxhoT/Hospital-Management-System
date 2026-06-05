@@ -28,6 +28,7 @@ export class DashboardComponent implements OnInit {
   newPassword = '';
   newRole = 'EMERGENCY_DOCTOR';
   newDepartmentId: number | null = null;
+  newPrivileged = false;
   creatingUser = false;
   userError = '';
   userSuccess = '';
@@ -122,6 +123,7 @@ export class DashboardComponent implements OnInit {
     this.newPassword = '';
     this.newRole = 'EMERGENCY_DOCTOR';
     this.newDepartmentId = null;
+    this.newPrivileged = false;
     this.userError = '';
     this.userSuccess = '';
     if (this.showUserForm) this.showAddForm = false;
@@ -141,7 +143,10 @@ export class DashboardComponent implements OnInit {
     this.userSuccess = '';
 
     const request: any = { username, password, role: this.newRole };
-    if (this.newRole === 'DEPARTMENT_STAFF') request.departmentId = this.newDepartmentId;
+    if (this.newRole === 'DEPARTMENT_STAFF') {
+      request.departmentId = this.newDepartmentId;
+      request.privileged = this.newPrivileged;
+    }
 
     this.pavilionService.createUser(request).subscribe({
       next: () => {

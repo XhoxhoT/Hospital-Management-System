@@ -24,9 +24,12 @@ public class AuthService {
         );
         UserDetails user = userDetailsService.loadUserByUsername(request.getUsername());
         String role = user.getAuthorities().stream()
+                .filter(a -> a.getAuthority().startsWith("ROLE_"))
                 .findFirst()
                 .map(a -> a.getAuthority().replace("ROLE_", ""))
                 .orElse("");
-        return new AuthResponse(jwtService.generateToken(user), role);
+        boolean privileged = user.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("DEPT_WRITE"));
+        return new AuthResponse(jwtService.generateToken(user), role, privileged);
     }
 }

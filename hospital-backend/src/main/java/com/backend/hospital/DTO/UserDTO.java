@@ -14,4 +14,5 @@ public class UserDTO {
     private Role role;
     private Long departmentId;
     private String departmentName;
+    private boolean privileged;
 }

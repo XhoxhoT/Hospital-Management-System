@@ -33,7 +33,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
         const username = this.decodeJwtUsername(response.token);
-        const user: User = { username, token: response.token, role: response.role };
+        const user: User = { username, token: response.token, role: response.role, privileged: response.privileged };
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('token', response.token);
         this.currentUserSubject.next(user);
@@ -58,6 +58,10 @@ export class AuthService {
 
   isDepartmentStaff(): boolean {
     return this.currentUserValue?.role === 'DEPARTMENT_STAFF';
+  }
+
+  isPrivilegedDepartmentStaff(): boolean {
+    return this.currentUserValue?.role === 'DEPARTMENT_STAFF' && !!this.currentUserValue?.privileged;
   }
 
   getToken(): string | null {

@@ -24,6 +24,7 @@ public class AdminService {
     public UserDTO createUser(CreateUserRequest request) {
         Department department = null;
 
+        boolean privileged = false;
         if (request.getRole() == Role.DEPARTMENT_STAFF) {
             if (request.getDepartmentId() == null) {
                 throw new BadRequestException("departmentId is required for DEPARTMENT_STAFF role");
@@ -31,6 +32,7 @@ public class AdminService {
             department = departmentRepository.findById(request.getDepartmentId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Department with id " + request.getDepartmentId() + " not found"));
+            privileged = request.isPrivileged();
         }
 
         User user = User.builder()
@@ -38,6 +40,7 @@ public class AdminService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .department(department)
+                .privileged(privileged)
                 .build();
 
         User saved = userRepository.save(user);
@@ -47,7 +50,8 @@ public class AdminService {
                 saved.getUsername(),
                 saved.getRole(),
                 saved.getDepartment() != null ? saved.getDepartment().getId() : null,
-                saved.getDepartment() != null ? saved.getDepartment().getName() : null
+                saved.getDepartment() != null ? saved.getDepartment().getName() : null,
+                saved.isPrivileged()
         );
     }
 }
