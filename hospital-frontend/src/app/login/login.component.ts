@@ -14,7 +14,6 @@ export class LoginComponent implements OnInit {
   submitted = false;
   error = '';
   successMessage = '';
-  returnUrl = '/';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -22,22 +21,17 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
-    // Redirect to home if already logged in
     if (this.authService.currentUserValue) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
     }
   }
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Get return url from route parameters or default to '/'
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-
-    // Check for registration success message
     const registered = this.route.snapshot.queryParams['registered'];
     const message = this.route.snapshot.queryParams['message'];
     if (registered === 'true' && message) {
@@ -53,7 +47,6 @@ export class LoginComponent implements OnInit {
     this.submitted = true;
     this.error = '';
 
-    // Stop if form is invalid
     if (this.loginForm.invalid) {
       return;
     }
@@ -61,16 +54,18 @@ export class LoginComponent implements OnInit {
     this.loading = true;
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
-        console.log('Login successful', response);
-        // Redirect to role-specific dashboard
-        const dashboardRoute = this.authService.getDashboardRoute(response.user.role);
-        this.router.navigate([dashboardRoute]);
+      next: () => {
+        this.router.navigate([this.authService.getDashboardRoute()]);
       },
-      error: (error) => {
-        this.error = 'Invalid email or password';
+      error: (err) => {
+        if (err.status === 0) {
+          this.error = 'Could not reach the server. Make sure the backend is running on port 8080.';
+        } else if (err.status === 401 || err.status === 403) {
+          this.error = 'Username ose fjalekalimi eshte i gabuar';
+        } else {
+          this.error = `Error ${err.status}: ${err.error?.message ?? 'Login failed'}`;
+        }
         this.loading = false;
-        console.error('Login error:', error);
       },
       complete: () => {
         this.loading = false;

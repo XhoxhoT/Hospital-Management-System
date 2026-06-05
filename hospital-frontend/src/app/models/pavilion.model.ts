@@ -1,24 +1,43 @@
+export type BedStatus = 'FREE' | 'OCCUPIED' | 'OUT_OF_SERVICE';
+
+export interface OutOfServiceAlert {
+  bedId: number;
+  bedNumber: string;
+  roomNumber: string;
+  departmentName: string;
+  outOfServiceSince: string;
+  minutesInStatus: number;
+}
+
+export interface BedStatusHistory {
+  id: number;
+  previousStatus: BedStatus | null;
+  newStatus: BedStatus;
+  changedAt: string;
+  changedBy: string;
+}
+
 export interface Bed {
-  id: string;
-  number: number;
-  status: 'free' | 'occupied' | 'unavailable';
+  bedId: number;
+  bednumber: string;
+  bedStatus: BedStatus;
+  roomId: number;
+  statusSince: string | null;
 }
 
 export interface Room {
-  id: string;
-  number: number;
+  id: number;
+  roomNumber: string;
+  departmentId: number;
   beds: Bed[];
 }
 
 export interface Pavilion {
-  id: string;
+  id: number;
   name: string;
-  description: string;
-  icon: string;
-  color: string;
+  freeBeds: number;
+  totalBeds: number;
   rooms: Room[];
   patientCount?: number;
-  bedCount?: number;
-  availableBeds?: number;
   unavailableBeds?: number;
 }

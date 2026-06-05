@@ -22,8 +22,6 @@ public class Department {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "total_beds", nullable = false)
-    private int totalBeds;
 
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Room> rooms;

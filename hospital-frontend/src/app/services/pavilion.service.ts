@@ -1,159 +1,114 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Bed, Pavilion, Room } from '../models/pavilion.model';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { Bed, BedStatus, BedStatusHistory, OutOfServiceAlert, Pavilion, Room } from '../models/pavilion.model';
+import { CreateUserRequest } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PavilionService {
-  private apiUrl = 'http://localhost:3000/api/pavilions';
+  private apiUrl = environment.apiUrl;
 
-  private generateRooms(roomCount: number, bedsPerRoom: number, pavilionId: string): Room[] {
-    const rooms: Room[] = [];
-    for (let r = 1; r <= roomCount; r++) {
-      const beds: Bed[] = [];
-      for (let b = 1; b <= bedsPerRoom; b++) {
-        const rand = Math.random();
-        let status: 'free' | 'occupied' | 'unavailable';
-        if (rand > 0.4) {
-          status = 'free';
-        } else if (rand > 0.15) {
-          status = 'occupied';
-        } else {
-          status = 'unavailable';
-        }
-        beds.push({
-          id: `${pavilionId}-r${r}-b${b}`,
-          number: b,
-          status
-        });
-      }
-      rooms.push({
-        id: `${pavilionId}-r${r}`,
-        number: r,
-        beds
-      });
-    }
-    return rooms;
-  }
-
-  private mockPavilions: Pavilion[] = [
-    {
-      id: '1',
-      name: 'Kardiologji',
-      description: 'Departamenti i Kardiologjise',
-      icon: '❤️',
-      color: '#e57373',
-      rooms: this.generateRooms(10, 6, '1')
-    },
-    {
-      id: '2',
-      name: 'Neurologji',
-      description: 'Departamenti i Neurologjise',
-      icon: '🧠',
-      color: '#9575cd',
-      rooms: this.generateRooms(8, 5, '2')
-    },
-    {
-      id: '3',
-      name: 'Pediatri',
-      description: 'Departamenti i Pediatrise',
-      icon: '👶',
-      color: '#4fc3f7',
-      rooms: this.generateRooms(10, 5, '3')
-    },
-    {
-      id: '4',
-      name: 'Ortopedi',
-      description: 'Departamenti i Ortopedise',
-      icon: '🦴',
-      color: '#81c784',
-      rooms: this.generateRooms(9, 5, '4')
-    },
-    {
-      id: '5',
-      name: 'Urgjence',
-      description: 'Departamenti i Urgjences',
-      icon: '🚑',
-      color: '#ff8a65',
-      rooms: this.generateRooms(6, 5, '5')
-    },
-    {
-      id: '6',
-      name: 'Kirurgji',
-      description: 'Departamenti i Kirurgjise',
-      icon: '🏥',
-      color: '#4db6ac',
-      rooms: this.generateRooms(7, 5, '6')
-    },
-    {
-      id: '7',
-      name: 'Onkologji',
-      description: 'Departamenti i Onkologjise',
-      icon: '🎗️',
-      color: '#f06292',
-      rooms: this.generateRooms(11, 5, '7')
-    },
-    {
-      id: '8',
-      name: 'Psikiatri',
-      description: 'Departamenti i Psikiatrise',
-      icon: '🧘',
-      color: '#7986cb',
-      rooms: this.generateRooms(6, 5, '8')
-    }
-  ];
-
-  constructor(private http: HttpClient) {
-    this.mockPavilions = this.mockPavilions.map(p => this.calculateStats(p));
-  }
-
-  private calculateStats(pavilion: Pavilion): Pavilion {
-    let totalBeds = 0;
-    let freeBeds = 0;
-    let occupiedBeds = 0;
-    let unavailableBeds = 0;
-    pavilion.rooms.forEach(room => {
-      room.beds.forEach(bed => {
-        totalBeds++;
-        if (bed.status === 'free') freeBeds++;
-        else if (bed.status === 'occupied') occupiedBeds++;
-        else if (bed.status === 'unavailable') unavailableBeds++;
-      });
-    });
-    return {
-      ...pavilion,
-      bedCount: totalBeds,
-      availableBeds: freeBeds,
-      patientCount: occupiedBeds,
-      unavailableBeds: unavailableBeds
-    };
-  }
+  constructor(private http: HttpClient) {}
 
   getPavilions(): Observable<Pavilion[]> {
-    return of(this.mockPavilions);
+    return this.http.get<Pavilion[]>(`${this.apiUrl}/api/departments`).pipe(
+      map(departments => departments.map(d => ({ ...d, rooms: [] })))
+    );
   }
 
-  getPavilionById(id: string): Observable<Pavilion | undefined> {
-    const pavilion = this.mockPavilions.find(p => p.id === id);
-    return of(pavilion);
-  }
-
-  setBedStatus(pavilionId: string, roomId: string, bedId: string, status: 'free' | 'occupied' | 'unavailable'): Observable<Pavilion | undefined> {
-    const pavilion = this.mockPavilions.find(p => p.id === pavilionId);
-    if (pavilion) {
-      const room = pavilion.rooms.find(r => r.id === roomId);
-      if (room) {
-        const bed = room.beds.find(b => b.id === bedId);
-        if (bed) {
-          bed.status = status;
-          const index = this.mockPavilions.findIndex(p => p.id === pavilionId);
-          this.mockPavilions[index] = this.calculateStats(pavilion);
-          return of(this.mockPavilions[index]);
+  getPavilionById(id: number): Observable<Pavilion> {
+    return forkJoin({
+      departments: this.http.get<Pavilion[]>(`${this.apiUrl}/api/departments`),
+      rooms: this.http.get<Room[]>(`${this.apiUrl}/api/department/${id}/rooms`)
+    }).pipe(
+      switchMap(({ departments, rooms }) => {
+        const dept = departments.find(d => d.id === id);
+        if (rooms.length === 0) {
+          return of({
+            id,
+            name: dept?.name ?? '',
+            freeBeds: dept?.freeBeds ?? 0,
+            totalBeds: dept?.totalBeds ?? 0,
+            rooms: [],
+            patientCount: 0,
+            unavailableBeds: 0
+          } as Pavilion);
         }
-      }
-    }
-    return of(undefined);
+        const bedRequests = rooms.map(room =>
+          this.http.get<Bed[]>(`${this.apiUrl}/api/room/${room.id}/beds`).pipe(
+            map(beds => ({ ...room, beds }))
+          )
+        );
+        return forkJoin(bedRequests).pipe(
+          map(roomsWithBeds => {
+            const totalBeds = roomsWithBeds.reduce((sum, r) => sum + r.beds.length, 0);
+            const freeBeds = roomsWithBeds.reduce((sum, r) => sum + r.beds.filter(b => b.bedStatus === 'FREE').length, 0);
+            const patientCount = roomsWithBeds.reduce((sum, r) => sum + r.beds.filter(b => b.bedStatus === 'OCCUPIED').length, 0);
+            const unavailableBeds = roomsWithBeds.reduce((sum, r) => sum + r.beds.filter(b => b.bedStatus === 'OUT_OF_SERVICE').length, 0);
+            return {
+              id,
+              name: dept?.name ?? '',
+              freeBeds,
+              totalBeds,
+              rooms: roomsWithBeds,
+              patientCount,
+              unavailableBeds
+            } as Pavilion;
+          })
+        );
+      })
+    );
+  }
+
+  setBedStatus(bedId: number, bedStatus: BedStatus): Observable<Bed> {
+    return this.http.patch<Bed>(`${this.apiUrl}/api/beds/${bedId}/status`, { bedStatus });
+  }
+
+  createDepartment(name: string): Observable<Pavilion> {
+    return this.http.post<Pavilion>(`${this.apiUrl}/api/departments`, { name });
+  }
+
+  createRoom(roomNumber: string, departmentId: number): Observable<Room> {
+    return this.http.post<Room>(`${this.apiUrl}/api/rooms/room`, { roomNumber, departmentId });
+  }
+
+  createBed(bedNumber: string, roomId: number): Observable<Bed> {
+    return this.http.post<Bed>(`${this.apiUrl}/api/bed/beds`, { bedNumber, roomId });
+  }
+
+  getBedHistory(bedId: number): Observable<BedStatusHistory[]> {
+    return this.http.get<BedStatusHistory[]>(`${this.apiUrl}/api/beds/${bedId}/history`);
+  }
+
+  getOutOfServiceAlerts(minutes: number = 2): Observable<OutOfServiceAlert[]> {
+    return this.http.get<OutOfServiceAlert[]>(`${this.apiUrl}/api/beds/alerts?minutes=${minutes}`);
+  }
+
+  createUser(request: CreateUserRequest): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/users`, request);
+  }
+
+  updateRoomName(roomId: number, roomNumber: string): Observable<Room> {
+    return this.http.patch<Room>(`${this.apiUrl}/api/rooms/${roomId}`, { name: roomNumber });
+  }
+
+  updateBedName(bedId: number, bedNumber: string): Observable<Bed> {
+    return this.http.patch<Bed>(`${this.apiUrl}/api/beds/${bedId}/name`, { name: bedNumber });
+  }
+
+  deleteDepartment(departmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/departments/${departmentId}`);
+  }
+
+  deleteRoom(roomId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/rooms/${roomId}`);
+  }
+
+  deleteBed(bedId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/beds/${bedId}`);
   }
 }

@@ -9,7 +9,7 @@
   <!-- Error State -->
   <div *ngIf="error && !loading" class="error-state">
     <p>{{ error }}</p>
-    <button class="btn btn-primary" (click)="goBack()">Kthehu tek Dashboard</button>
+    <button class="btn btn-primary" (click)="goBack()">Kthehu tek Paneli</button>
   </div>
 
   <!-- Pavilion Content -->
@@ -20,7 +20,6 @@
       </button>
       <div class="header-text">
         <h1>{{ pavilion.name }}</h1>
-        <p>{{ pavilion.description }}</p>
       </div>
     </div>
 
@@ -35,13 +34,13 @@
       <div class="stat-card">
         <div class="stat-info">
           <h3>Totali Shtretërve</h3>
-          <p class="stat-number">{{ pavilion.bedCount }}</p>
+          <p class="stat-number">{{ pavilion.totalBeds }}</p>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-info">
           <h3>Shtretër të Lirë</h3>
-          <p class="stat-number available">{{ pavilion.availableBeds }}</p>
+          <p class="stat-number available">{{ pavilion.freeBeds }}</p>
         </div>
       </div>
       <div class="stat-card">
@@ -58,47 +57,178 @@
       </div>
     </div>
 
+    <!-- Out-of-service alerts banner -->
+    <div class="alerts-banner" *ngIf="alerts.length > 0 && !alertsDismissed">
+      <div class="alerts-banner-header">
+        <div class="alerts-title">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ alerts.length }} shtrat{{ alerts.length === 1 ? '' : 'ë' }} jashtë shërbimit prej mbi 2 minutash</span>
+        </div>
+        <button class="btn-dismiss" (click)="dismissAlerts()">✕</button>
+      </div>
+      <ul class="alerts-list">
+        <li *ngFor="let alert of alerts" class="alert-item">
+          <i class="fa-solid fa-bed"></i>
+          <span class="alert-bed">Shtrati {{ alert.bedNumber }}</span>
+          <span class="alert-room">Dhoma {{ alert.roomNumber }}</span>
+          <span class="alert-duration">{{ alert.minutesInStatus }}m</span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Beds Table Section -->
     <div class="table-section">
       <div class="section-header">
         <h2>Shtretërit</h2>
-        <div class="legend">
-          <span class="legend-item"><span class="legend-color free"></span> I lirë</span>
-          <span class="legend-item"><span class="legend-color occupied"></span> I zënë</span>
-          <span class="legend-item"><span class="legend-color unavailable"></span> Jo i disponueshëm</span>
+        <div class="header-actions">
+          <div class="legend">
+            <span class="legend-item"><span class="legend-color free"></span> I lirë</span>
+            <span class="legend-item"><span class="legend-color occupied"></span> I zënë</span>
+            <span class="legend-item"><span class="legend-color unavailable"></span> Jo i disponueshëm</span>
+          </div>
+          <button *ngIf="canManageRooms" class="btn btn-primary btn-sm" (click)="toggleAddRoomForm()">
+            {{ showAddRoomForm ? '✕ Anulo' : '+ Shto Dhomë' }}
+          </button>
         </div>
       </div>
 
-      <div class="table-container">
+      <!-- Add Room Form -->
+      <div *ngIf="showAddRoomForm" class="inline-form">
+        <span class="inline-form-label">Nr. Dhomës:</span>
+        <input
+          type="text"
+          class="form-input"
+          placeholder="p.sh. 101"
+          [(ngModel)]="newRoomNumber"
+          (keyup.enter)="submitAddRoom()" />
+        <button class="btn btn-primary btn-sm" (click)="submitAddRoom()" [disabled]="addingRoom || !newRoomNumber.trim()">
+          {{ addingRoom ? 'Duke shtuar...' : 'Shto' }}
+        </button>
+        <span *ngIf="addRoomError" class="form-error">{{ addRoomError }}</span>
+      </div>
+
+      <div *ngIf="pavilion.rooms.length === 0 && !showAddRoomForm" class="empty-state">
+        Nuk ka dhoma. Shto një dhomë me butonin "Shto Dhomë".
+      </div>
+
+      <div class="table-container" *ngIf="pavilion.rooms.length > 0">
         <table class="beds-table">
           <thead>
             <tr>
               <th>Dhoma</th>
               <th>Shtrati</th>
               <th>Statusi</th>
+              <th>Historiku</th>
             </tr>
           </thead>
           <tbody>
             <ng-container *ngFor="let room of pavilion.rooms; let roomIndex = index">
-              <tr *ngFor="let bed of room.beds; let bedIndex = index" [class.room-even]="roomIndex % 2 === 0"
-                [class.room-odd]="roomIndex % 2 !== 0">
-                <td class="room-cell" *ngIf="bedIndex === 0" [attr.rowspan]="room.beds.length"
-                  [class.room-cell-even]="roomIndex % 2 === 0" [class.room-cell-odd]="roomIndex % 2 !== 0">
-                  <span class="room-name">Dhoma {{ room.number }}</span>
+              <!-- Bed rows -->
+              <tr *ngFor="let bed of room.beds; let bedIndex = index"
+                [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0"
+                [class.bed-alert]="alertBedIds.has(bed.bedId)">
+                <td class="room-cell"
+                  *ngIf="bedIndex === 0"
+                  [attr.rowspan]="room.beds.length + (addBedForRoomId === room.id ? 1 : 0)"
+                  [class.room-cell-even]="roomIndex % 2 === 0"
+                  [class.room-cell-odd]="roomIndex % 2 !== 0">
+                  <div class="room-name-row">
+                    <ng-container *ngIf="editingRoomId !== room.id">
+                      <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                      <button *ngIf="canManageRooms" class="btn-edit-name" (click)="startEditRoom(room); $event.stopPropagation()" title="Ndrysho emrin">✎</button>
+                    </ng-container>
+                    <ng-container *ngIf="editingRoomId === room.id">
+                      <input class="form-input form-input-sm edit-name-input" [(ngModel)]="editRoomName"
+                        (keyup.enter)="saveRoomName(room)" (keyup.escape)="cancelEditRoom()" (click)="$event.stopPropagation()" autofocus />
+                      <button class="btn-save-edit" (click)="saveRoomName(room); $event.stopPropagation()">✓</button>
+                      <button class="btn-cancel-edit" (click)="cancelEditRoom(); $event.stopPropagation()">✕</button>
+                    </ng-container>
+                    <button *ngIf="canManageRooms && editingRoomId !== room.id" class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                      {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                    </button>
+                    <button *ngIf="canManageRooms && editingRoomId !== room.id" class="btn-delete-room" (click)="deleteRoom(room); $event.stopPropagation()" title="Fshi dhomën">✕</button>
+                  </div>
                   <span class="room-info">{{ getFreeBeds(room) }}/{{ room.beds.length }} të lirë</span>
                 </td>
-                <td class="bed-cell">{{ bed.number }}</td>
+                <td class="bed-cell">
+                  <ng-container *ngIf="editingBedId !== bed.bedId">
+                    {{ bed.bednumber }}
+                    <button *ngIf="canManageRooms" class="btn-edit-name" (click)="startEditBed(bed)" title="Ndrysho emrin">✎</button>
+                  </ng-container>
+                  <div class="edit-inline" *ngIf="editingBedId === bed.bedId">
+                    <input class="form-input form-input-sm edit-name-input" [(ngModel)]="editBedName"
+                      (keyup.enter)="saveBedName(bed)" (keyup.escape)="cancelEditBed()" autofocus />
+                    <button class="btn-save-edit" (click)="saveBedName(bed)">✓</button>
+                    <button class="btn-cancel-edit" (click)="cancelEditBed()">✕</button>
+                  </div>
+                </td>
                 <td class="status-cell">
                   <select class="status-dropdown"
-                    [class.free]="bed.status === 'free'"
-                    [class.occupied]="bed.status === 'occupied'"
-                    [class.unavailable]="bed.status === 'unavailable'"
-                    [value]="bed.status"
-                    (change)="setBedStatus(room, bed, $event)">
-                    <option value="free">I lirë</option>
-                    <option value="occupied">I zënë</option>
-                    <option value="unavailable">Jo i disponueshëm</option>
+                    [class.free]="bed.bedStatus === 'FREE'"
+                    [class.occupied]="bed.bedStatus === 'OCCUPIED'"
+                    [class.unavailable]="bed.bedStatus === 'OUT_OF_SERVICE'"
+                    [disabled]="!canChangeBedStatus"
+                    [value]="bed.bedStatus"
+                    (change)="setBedStatus(bed, $event)">
+                    <option value="FREE">I lirë</option>
+                    <option value="OCCUPIED">I zënë</option>
+                    <option value="OUT_OF_SERVICE">Jo i disponueshëm</option>
                   </select>
+                  <span class="status-duration" *ngIf="bed.statusSince">{{ statusDuration(bed) }}</span>
+                </td>
+                <td class="history-cell">
+                  <button class="btn-history" (click)="openHistory(bed)" title="Shiko historikun">
+                    <i class="fa-regular fa-clock"></i>
+                  </button>
+                  <button *ngIf="canManageRooms" class="btn-delete-bed" (click)="deleteBed(bed, room)" title="Fshi shtratin">✕</button>
+                </td>
+              </tr>
+              <!-- Empty room (no beds yet) placeholder row -->
+              <tr *ngIf="room.beds.length === 0"
+                [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0">
+                <td class="room-cell"
+                  [class.room-cell-even]="roomIndex % 2 === 0"
+                  [class.room-cell-odd]="roomIndex % 2 !== 0">
+                  <div class="room-name-row">
+                    <ng-container *ngIf="editingRoomId !== room.id">
+                      <span class="room-name">Dhoma {{ room.roomNumber }}</span>
+                      <button *ngIf="canManageRooms" class="btn-edit-name" (click)="startEditRoom(room); $event.stopPropagation()" title="Ndrysho emrin">✎</button>
+                    </ng-container>
+                    <ng-container *ngIf="editingRoomId === room.id">
+                      <input class="form-input form-input-sm edit-name-input" [(ngModel)]="editRoomName"
+                        (keyup.enter)="saveRoomName(room)" (keyup.escape)="cancelEditRoom()" (click)="$event.stopPropagation()" autofocus />
+                      <button class="btn-save-edit" (click)="saveRoomName(room); $event.stopPropagation()">✓</button>
+                      <button class="btn-cancel-edit" (click)="cancelEditRoom(); $event.stopPropagation()">✕</button>
+                    </ng-container>
+                    <button *ngIf="canManageRooms && editingRoomId !== room.id" class="btn-add-bed" (click)="toggleAddBedForm(room.id); $event.stopPropagation()">
+                      {{ addBedForRoomId === room.id ? '✕' : '+ Shtrat' }}
+                    </button>
+                    <button *ngIf="canManageRooms && editingRoomId !== room.id" class="btn-delete-room" (click)="deleteRoom(room); $event.stopPropagation()" title="Fshi dhomën">✕</button>
+                  </div>
+                  <span class="room-info">0/0 të lirë</span>
+                </td>
+                <td colspan="3" class="empty-room-cell">Nuk ka shtretër</td>
+              </tr>
+              <!-- Add Bed inline row -->
+              <tr *ngIf="addBedForRoomId === room.id"
+                [class.room-even]="roomIndex % 2 === 0"
+                [class.room-odd]="roomIndex % 2 !== 0">
+                <td colspan="2" class="add-bed-cell">
+                  <div class="add-bed-form">
+                    <span class="inline-form-label">Nr. Shtratit:</span>
+                    <input
+                      type="text"
+                      class="form-input form-input-sm"
+                      placeholder="p.sh. B1"
+                      [(ngModel)]="newBedNumber"
+                      (keyup.enter)="submitAddBed(room)" />
+                    <button class="btn btn-primary btn-sm" (click)="submitAddBed(room)" [disabled]="addingBed || !newBedNumber.trim()">
+                      {{ addingBed ? '...' : 'Shto' }}
+                    </button>
+                    <span *ngIf="addBedError" class="form-error">{{ addBedError }}</span>
+                  </div>
                 </td>
               </tr>
             </ng-container>
@@ -108,4 +238,38 @@
     </div>
   </div>
 </div>
+<!-- History Side Panel -->
+<div class="history-overlay" *ngIf="historyBed" (click)="closeHistory()"></div>
+<div class="history-panel" *ngIf="historyBed">
+  <div class="history-panel-header">
+    <h3>Historiku — Shtrati {{ historyBed.bednumber }}</h3>
+    <button class="btn-close-history" (click)="closeHistory()">✕</button>
+  </div>
+  <div class="history-panel-body">
+    <div *ngIf="historyLoading" class="history-loading">
+      <div class="spinner-sm"></div>
+    </div>
+    <div *ngIf="!historyLoading && historyEntries.length === 0" class="history-empty">
+      Nuk ka ndryshime të regjistruara.
+    </div>
+    <ul *ngIf="!historyLoading && historyEntries.length > 0" class="history-list">
+      <li *ngFor="let entry of historyEntries" class="history-entry">
+        <div class="history-change">
+          <span class="history-status" [class]="'hs-' + (entry.previousStatus ?? 'none')">
+            {{ statusLabel(entry.previousStatus) }}
+          </span>
+          <span class="history-arrow">→</span>
+          <span class="history-status" [class]="'hs-' + entry.newStatus">
+            {{ statusLabel(entry.newStatus) }}
+          </span>
+        </div>
+        <div class="history-meta">
+          <span class="history-by">{{ entry.changedBy }}</span>
+          <span class="history-at">{{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
 <app-footer></app-footer>
